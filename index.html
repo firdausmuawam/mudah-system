@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><link rel="manifest" href="manifest.webmanifest"><link rel="icon" href="icon-192.png"><link rel="apple-touch-icon" href="icon-192.png"></head><body>
+<title>id.os-UMKUM</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0A6B58">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Space+Grotesk:wght@500;700&display=swap">
+<style>
+/* Layout: aplikasi satu layar. Header perusahaan di atas, isi bergulir, navigasi bawah tetap. */
+:root{
+  --bg:#EEF2F0; --surface:#FFFFFF; --ink:#13211C; --muted:#5B6B65; --line:#D5DDD9;
+  --accent:#0A6B58; --accent-ink:#FFFFFF; --accent-soft:#DCEFE8;
+  --warn:#B3470B; --warn-soft:#FBE7DA; --ok:#14733F; --ok-soft:#DDF1E4;
+  --font-display:'Space Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-body:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --font-mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E1714; --surface:#16231F; --ink:#E6EFEB; --muted:#98A9A2; --line:#263630;
+    --accent:#4FC3A5; --accent-ink:#05261E; --accent-soft:#1B3A31;
+    --warn:#F0A070; --warn-soft:#3A2418; --ok:#6FD39B; --ok-soft:#173524; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E1714; --surface:#16231F; --ink:#E6EFEB; --muted:#98A9A2; --line:#263630;
+  --accent:#4FC3A5; --accent-ink:#05261E; --accent-soft:#1B3A31;
+  --warn:#F0A070; --warn-soft:#3A2418; --ok:#6FD39B; --ok-soft:#173524; color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;min-height:100%}
+body{background:var(--bg);color:var(--ink);font:14px/1.5 var(--font-body);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:0 84px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--bg);z-index:10}
+h1,h2,h3{font-family:var(--font-display);margin:0;text-wrap:balance;letter-spacing:-.01em}
+h2{font-size:17px;font-weight:700}
+h3{font-size:14px;font-weight:700}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);padding:12px 0 10px;display:flex;gap:10px;align-items:center}
+.brand{font-family:var(--font-display);font-weight:700;font-size:16px;white-space:nowrap}
+.brand small{font:500 11px var(--font-mono);color:var(--muted);margin-left:6px}
+.top select{flex:1;min-width:0}
+main{display:flex;flex-direction:column;gap:12px;padding-top:4px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;min-width:0}
+.card>h2{margin-bottom:10px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+@media (max-width:360px){.grid2{grid-template-columns:1fr}}
+label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--muted);min-width:0}
+input,select,textarea{font:inherit;font-size:14px;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px;min-width:0;width:100%}
+input:focus-visible,select:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+button{font:600 13px var(--font-body);border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:9px 13px;cursor:pointer}
+button.pri{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button.pri:disabled{opacity:.45;cursor:not-allowed}
+button.dng{color:var(--warn);border-color:var(--warn)}
+button.sm{padding:5px 9px;font-size:12px}
+.chip{border-radius:99px;padding:6px 12px;font-size:12px}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.tag{font:500 11px var(--font-mono);padding:2px 7px;border-radius:99px;background:var(--accent-soft);color:var(--accent)}
+.tag.warn{background:var(--warn-soft);color:var(--warn)}
+.muted{color:var(--muted)}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:7px 8px;text-align:left;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 11px var(--font-body);text-transform:uppercase;letter-spacing:.05em;color:var(--muted);white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+tr.tot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
+tr.sec td{font-weight:700;background:var(--bg);color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+.bal{padding:8px 10px;border-radius:8px;font-size:13px;font-variant-numeric:tabular-nums}
+.bal.ok{background:var(--ok-soft);color:var(--ok)}
+.bal.bad{background:var(--warn-soft);color:var(--warn)}
+.line{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) minmax(0,1fr);gap:6px}
+.jr{border-top:1px solid var(--line);padding:10px 0}
+.jr:first-of-type{border-top:0}
+.jr .h{display:flex;justify-content:space-between;gap:8px;align-items:center}
+.msg{padding:10px 12px;border-radius:8px;font-size:13px}
+.msg.ok{background:var(--ok-soft);color:var(--ok)}
+.msg.bad{background:var(--warn-soft);color:var(--warn)}
+.msg ul{margin:6px 0 0;padding-left:18px}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:9;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:6px max(8px,env(safe-area-inset-left,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(8px,env(safe-area-inset-right,0px))}
+nav button{border:0;background:none;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;font-size:11px;font-weight:500}
+nav button svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+nav button.on{color:var(--accent)}
+nav button.on span{font-weight:700}
+#toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(76px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:9px 14px;border-radius:99px;font-size:13px;z-index:20;max-width:calc(100% - 32px);text-align:center}
+ul.log{margin:0;padding-left:18px}
+ul.log li{margin:2px 0}
+@media (prefers-reduced-motion:no-preference){button{transition:background .15s,color .15s}}
+</style>
+
+<div class="top">
+  <div class="brand">id.os-UMKUM<small id="ver"></small></div>
+  <select id="sw" aria-label="Pilih perusahaan"></select>
+</div>
+<main id="view"></main>
+<nav id="nav" aria-label="Menu utama"></nav>
+<div id="toast" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+const VER='1.1';
+const KEY='id.os-umkum.data';
+const TIPE=['aset','liabilitas','ekuitas','pendapatan','beban'];
+const TIPE_LBL={aset:'Aset',liabilitas:'Liabilitas',ekuitas:'Ekuitas',pendapatan:'Pendapatan',beban:'Beban'};
+const normalOf=t=>(t==='aset'||t==='beban')?'D':'K';
+const DEF_COA=[
+['1100','Kas','aset','D',1],['1200','Bank','aset','D',1],['1300','Piutang Usaha','aset','D',0],['1400','Persediaan Barang','aset','D',0],
+['1500','Perlengkapan','aset','D',0],['1600','Peralatan','aset','D',0],['1690','Akumulasi Penyusutan Peralatan','aset','K',0],
+['2100','Utang Usaha','liabilitas','K',0],['2200','Utang Bank','liabilitas','K',0],['2300','Utang Gaji','liabilitas','K',0],
+['3100','Modal Pemilik','ekuitas','K',0],['3200','Prive','ekuitas','D',0],
+['4100','Penjualan','pendapatan','K',0],['4200','Pendapatan Lain','pendapatan','K',0],
+['5100','Harga Pokok Penjualan','beban','D',0],['5200','Beban Gaji','beban','D',0],['5300','Beban Sewa','beban','D',0],
+['5400','Beban Listrik dan Air','beban','D',0],['5500','Beban Penyusutan','beban','D',0],['5900','Beban Lain-lain','beban','D',0]];
+const mkCoa=()=>DEF_COA.map(([kode,nama,tipe,normal,kas])=>({kode,nama,tipe,normal,kas:!!kas}));
+
+/* ---------- util ---------- */
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rp=n=>{n=Math.round(n||0);const s=Math.abs(n).toLocaleString('id-ID');return n<0?'('+s+')':s};
+const uid=()=>Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+const pad=(n,w)=>String(n).padStart(w||2,'0');
+const today=()=>{const t=new Date();return t.getFullYear()+'-'+pad(t.getMonth()+1)+'-'+pad(t.getDate())};
+const byKode=(a,b)=>String(a.kode).localeCompare(String(b.kode),'id',{numeric:true});
+const tglId=s=>{if(!s)return '';const p=s.split('-');return p[2]+'/'+p[1]+'/'+p[0]};
+function num(v){
+  if(typeof v==='number')return isFinite(v)?v:NaN;
+  let s=String(v==null?'':v).replace(/[^\d.,-]/g,'');
+  if(!s)return String(v==null?'':v).trim()===''?0:NaN;
+  if(/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s))s=s.replace(/\./g,'').replace(',','.');
+  else if(/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(s))s=s.replace(/,/g,'');
+  else s=s.replace(',','.');
+  const x=parseFloat(s);return isNaN(x)?NaN:x;
+}
+let toastT;
+function toast(m){const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true},3200)}
+
+/* ---------- data ---------- */
+let S;
+function load(){try{const r=localStorage.getItem(KEY);if(r)return JSON.parse(r)}catch(e){}return null}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function migrate(s){ /* tempat migrasi data antarversi: v1.0 belum ada yang perlu dimigrasi */ s.ver=VER;return s}
+function sample(){
+  const J=(tgl,no,ket,rows)=>rows.map(([akun,d,k])=>({tgl,no,ket,akun,d,k}));
+  const jurnal=[].concat(
+    J('2026-11-01','SA-01','Saldo awal',[['1100',20000000,0],['1400',15000000,0],['1600',5000000,0],['3100',0,40000000]]),
+    J('2026-11-03','KM-001','Penjualan tunai',[['1100',3500000,0],['4100',0,3500000]]),
+    J('2026-11-03','JU-001','HPP penjualan tunai',[['5100',2000000,0],['1400',0,2000000]]),
+    J('2026-11-05','KK-001','Bayar sewa toko',[['5300',1500000,0],['1100',0,1500000]]),
+    J('2026-11-07','JU-002','Penjualan kredit',[['1300',2400000,0],['4100',0,2400000]]),
+    J('2026-11-07','JU-003','HPP penjualan kredit',[['5100',1400000,0],['1400',0,1400000]]),
+    J('2026-11-10','JU-004','Beli barang secara kredit',[['1400',5000000,0],['2100',0,5000000]]),
+    J('2026-11-12','KK-002','Bayar gaji karyawan',[['5200',2000000,0],['1100',0,2000000]])
+  ).map(l=>Object.assign({id:uid()},l));
+  return{id:uid(),nama:'Usaha Contoh',demo:true,coa:mkCoa(),jurnal};
+}
+S=load();
+if(!S||!Array.isArray(S.perusahaan))S={ver:VER,aktif:'',perusahaan:[]};
+S=migrate(S);
+const C=()=>S.perusahaan.find(p=>p.id===S.aktif)||S.perusahaan[0];
+
+/* ---------- perhitungan akuntansi ---------- */
+function sums(c,from,to){
+  const m={};c.coa.forEach(a=>{m[a.kode]={d:0,k:0}});
+  c.jurnal.forEach(l=>{
+    if(from&&l.tgl<from)return; if(to&&l.tgl>to)return;
+    const x=m[l.akun]; if(x){x.d+=l.d;x.k+=l.k}
+  });
+  return m;
+}
+function dataNS(c,to){
+  const m=sums(c,'',to);const rows=[];let td=0,tk=0;
+  c.coa.slice().sort(byKode).forEach(a=>{
+    const x=m[a.kode]; if(!x.d&&!x.k)return;
+    const n=x.d-x.k, d=n>0?n:0, k=n<0?-n:0; td+=d;tk+=k; rows.push([a.kode,a.nama,d,k]);
+  });
+  return{rows,td,tk};
+}
+function groupVal(c,m,tipe){
+  return c.coa.filter(a=>a.tipe===tipe).sort(byKode).map(a=>{
+    const x=m[a.kode];return[a.kode,a.nama,normalOf(tipe)==='D'?x.d-x.k:x.k-x.d];
+  }).filter(r=>Math.round(r[2])!==0);
+}
+const tot=r=>r.reduce((s,x)=>s+x[2],0);
+function dataLR(c,from,to){
+  const m=sums(c,from,to), p=groupVal(c,m,'pendapatan'), b=groupVal(c,m,'beban');
+  return{p,b,tp:tot(p),tb:tot(b),laba:tot(p)-tot(b)};
+}
+function dataNR(c,to){
+  const m=sums(c,'',to);
+  const a=groupVal(c,m,'aset'),l=groupVal(c,m,'liabilitas'),e=groupVal(c,m,'ekuitas');
+  const laba=tot(groupVal(c,m,'pendapatan'))-tot(groupVal(c,m,'beban'));
+  const TA=tot(a),TL=tot(l),TE=tot(e)+laba;
+  return{a,l,e,laba,TA,TL,TE,selisih:Math.round(TA-TL-TE)};
+}
+function dataBB(c,kode,from,to){
+  const a=c.coa.find(x=>x.kode===kode); if(!a)return null;
+  const sg=(d,k)=>a.normal==='D'?d-k:k-d;
+  let run=0; if(from)c.jurnal.forEach(l=>{if(l.akun===kode&&l.tgl<from)run+=sg(l.d,l.k)});
+  const awal=run, rows=[];
+  c.jurnal.filter(l=>l.akun===kode&&(!from||l.tgl>=from)&&(!to||l.tgl<=to))
+    .sort((x,y)=>(x.tgl+x.no).localeCompare(y.tgl+y.no)).forEach(l=>{run+=sg(l.d,l.k);rows.push([l.tgl,l.no,l.ket,l.d,l.k,run])});
+  return{a,awal,rows,akhir:run};
+}
+function dataKas(c,from,to){
+  return c.coa.filter(a=>a.kas).sort(byKode).map(a=>{
+    let awal=0,masuk=0,keluar=0;
+    c.jurnal.forEach(l=>{
+      if(l.akun!==a.kode)return;
+      if(from&&l.tgl<from)awal+=l.d-l.k;
+      else if(!to||l.tgl<=to){masuk+=l.d;keluar+=l.k}
+    });
+    return[a.kode,a.nama,awal,masuk,keluar,awal+masuk-keluar];
+  });
+}
+function buktiList(c){
+  const g={};
+  c.jurnal.forEach(l=>{(g[l.no]=g[l.no]||{no:l.no,tgl:l.tgl,ket:l.ket,lines:[]}).lines.push(l)});
+  return Object.values(g).sort((a,b)=>(b.tgl+b.no).localeCompare(a.tgl+a.no));
+}
+function nextNo(c){
+  const n=new Set(c.jurnal.map(l=>l.no));let i=n.size+1,no;
+  do{no='JU-'+pad(i,3);i++}while(n.has(no));return no;
+}
+
+/* ---------- impor / ekspor Excel ---------- */
+const TIPE_ALIAS={aset:'aset',harta:'aset',liabilitas:'liabilitas',kewajiban:'liabilitas',utang:'liabilitas',hutang:'liabilitas',
+  ekuitas:'ekuitas',modal:'ekuitas',pendapatan:'pendapatan',penghasilan:'pendapatan',pendapatanusaha:'pendapatan',beban:'beban',biaya:'beban'};
+const hnorm=h=>String(h==null?'':h).toLowerCase().replace(/[^a-z]/g,'');
+function parseTgl(v){
+  if(v instanceof Date&&!isNaN(v)){const d=new Date(v.getTime()+12*3600e3);return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())}
+  if(typeof v==='number'&&v>20000&&v<80000){return new Date(Math.round((v-25569)*86400e3)).toISOString().slice(0,10)}
+  const s=String(v||'').trim(); let m;
+  if(m=s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/))return m[1]+'-'+pad(+m[2])+'-'+pad(+m[3]);
+  if(m=s.match(/^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/))return m[3]+'-'+pad(+m[2])+'-'+pad(+m[1]);
+  return '';
+}
+function validDate(s){if(!/^\d{4}-\d{2}-\d{2}$/.test(s))return false;const d=new Date(s+'T12:00:00Z');return !isNaN(d)&&d.toISOString().slice(0,10)===s}
+function readSheet(ws,spec){
+  const rows=XLSX.utils.sheet_to_json(ws,{header:1,raw:true,defval:''});
+  if(!rows.length)return{items:[],miss:['(sheet kosong)']};
+  const head=rows[0].map(hnorm), idx={}, miss=[];
+  for(const [key,names,wajib] of spec){
+    const i=head.findIndex(h=>names.includes(h)); idx[key]=i;
+    if(i<0&&wajib)miss.push(names[0]);
+  }
+  const items=[];
+  for(let r=1;r<rows.length;r++){
+    const row=rows[r]; if(row.every(x=>x===''||x==null))continue;
+    const it={_r:r+1}; for(const k in idx)it[k]=idx[k]>=0?row[idx[k]]:''; items.push(it);
+  }
+  return{items,miss};
+}
+function analisisImpor(c,wb){
+  const err=[], res={akun:[],jurnal:[],ada:{akun:false,jurnal:false}};
+  const nm={};wb.SheetNames.forEach(n=>nm[hnorm(n)]=n);
+  const sn=Object.keys(nm).find(k=>k.includes('jurnal')), sa=Object.keys(nm).find(k=>k.includes('akun')||k.includes('coa'));
+  if(!sn&&!sa)return{err:['Tidak ada sheet bernama "Akun" atau "Jurnal". Unduh template dulu supaya formatnya pas.'],res};
+  const coa=new Map(c.coa.map(a=>[a.kode,Object.assign({},a)]));
+  if(sa){
+    res.ada.akun=true;
+    const {items,miss}=readSheet(wb.Sheets[nm[sa]],[['kode',['kode','kodeakun'],1],['nama',['namaakun','nama','namaperkiraan'],1],['tipe',['tipe','jenis','kelompok'],1],['normal',['saldonormal','normal'],0],['kas',['kas','akunkas'],0]]);
+    if(miss.length)err.push('Sheet Akun: kolom '+miss.join(', ')+' tidak ditemukan.');
+    else items.forEach(it=>{
+      const kode=String(it.kode).trim(), nama=String(it.nama).trim(), tipe=TIPE_ALIAS[hnorm(it.tipe)];
+      if(!kode||!nama){err.push('Akun baris '+it._r+': kode atau nama kosong.');return}
+      if(!tipe){err.push('Akun baris '+it._r+': tipe "'+it.tipe+'" tidak dikenal (pakai Aset, Liabilitas, Ekuitas, Pendapatan, atau Beban).');return}
+      let nrm=hnorm(it.normal); nrm=nrm.startsWith('d')?'D':nrm.startsWith('k')?'K':normalOf(tipe);
+      const kas=['ya','y','1','true','kas'].includes(hnorm(it.kas)||String(it.kas).toLowerCase());
+      coa.set(kode,{kode,nama,tipe,normal:nrm,kas});res.akun.push(kode);
+    });
+  }
+  if(sn){
+    res.ada.jurnal=true;
+    const {items,miss}=readSheet(wb.Sheets[nm[sn]],[['tgl',['tanggal','tgl'],1],['no',['nobukti','nojurnal','no','bukti'],1],['ket',['keterangan','ket','uraian'],0],['akun',['kodeakun','akun','kode'],1],['d',['debit','d'],1],['k',['kredit','k'],1]]);
+    if(miss.length)err.push('Sheet Jurnal: kolom '+miss.join(', ')+' tidak ditemukan.');
+    else{
+      const ada=new Set(c.jurnal.map(l=>l.no)), tiap={};
+      items.forEach(it=>{
+        const tgl=parseTgl(it.tgl), no=String(it.no).trim(), akun=String(it.akun).trim(), d=num(it.d===''?0:it.d), k=num(it.k===''?0:it.k);
+        let bad=false; const e=m=>{err.push('Jurnal baris '+it._r+': '+m);bad=true};
+        if(!validDate(tgl))e('tanggal "'+it.tgl+'" tidak valid (pakai format tahun-bulan-tanggal, misal 2026-11-14).');
+        if(!no)e('nomor bukti kosong.'); else if(ada.has(no))e('nomor bukti '+no+' sudah ada di perusahaan ini (kemungkinan sudah pernah diimpor).');
+        if(!coa.has(akun))e('kode akun "'+akun+'" tidak ada di daftar akun.');
+        if(isNaN(d)||isNaN(k)||d<0||k<0)e('debit/kredit harus angka positif.');
+        else if(d>0&&k>0)e('debit dan kredit tidak boleh terisi bersamaan.');
+        else if(d===0&&k===0)e('debit dan kredit sama-sama kosong.');
+        if(bad)return;
+        const t=tiap[no]=tiap[no]||{d:0,k:0,baris:it._r}; t.d+=d;t.k+=k;
+        res.jurnal.push({id:uid(),tgl,no,ket:String(it.ket||'').trim(),akun,d,k});
+      });
+      Object.keys(tiap).forEach(no=>{const t=tiap[no];if(Math.round(t.d-t.k)!==0)err.push('Bukti '+no+' tidak seimbang: debit '+rp(t.d)+', kredit '+rp(t.k)+' (mulai baris '+t.baris+').')});
+    }
+  }
+  res.coa=[...coa.values()];
+  return{err,res};
+}
+function saveWb(wb,name){
+  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Cek koneksi internet.');return}
+  try{XLSX.writeFile(wb,name);toast('Mengunduh '+name)}catch(e){toast('Unduhan gagal. Buka aplikasi langsung di Chrome.')}
+}
+function sheet(aoa,widths,numCols){
+  const ws=XLSX.utils.aoa_to_sheet(aoa); ws['!cols']=widths.map(w=>({wch:w}));
+  (numCols||[]).forEach(ci=>{for(let r=0;r<aoa.length;r++){const a=XLSX.utils.encode_cell({r,c:ci});if(ws[a]&&ws[a].t==='n')ws[a].z='#,##0;(#,##0)'}});
+  return ws;
+}
+function akunAoa(c){return[['Kode','Nama Akun','Tipe','Saldo Normal','Kas']].concat(c.coa.slice().sort(byKode).map(a=>[a.kode,a.nama,TIPE_LBL[a.tipe],a.normal==='D'?'Debit':'Kredit',a.kas?'Ya':'']))}
+function unduhTemplate(){
+  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Cek koneksi internet.');return}
+  const c=C(), wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,sheet(akunAoa(c),[10,34,14,14,8]),'Akun');
+  XLSX.utils.book_append_sheet(wb,sheet([['Tanggal','No Bukti','Keterangan','Kode Akun','Debit','Kredit'],
+    ['2026-11-14','JU-101','Penjualan tunai','1100',500000,0],['2026-11-14','JU-101','Penjualan tunai','4100',0,500000]],[12,12,34,11,14,14],[4,5]),'Jurnal');
+  XLSX.utils.book_append_sheet(wb,sheet([['Petunjuk'],
+    ['1. Sheet Akun: daftar akun (COA). Tipe: Aset, Liabilitas, Ekuitas, Pendapatan, Beban. Kolom Kas diisi Ya untuk akun kas/bank.'],
+    ['2. Sheet Jurnal: satu baris per akun. Baris dengan No Bukti yang sama membentuk satu jurnal dan total debit harus sama dengan total kredit.'],
+    ['3. Tanggal ditulis tahun-bulan-tanggal (2026-11-14) atau tanggal/bulan/tahun (14/11/2026).'],
+    ['4. Isi Debit atau Kredit, jangan keduanya dalam satu baris.'],
+    ['5. Nomor bukti yang sudah ada di perusahaan akan ditolak agar tidak terimpor dua kali.']],[110]),'Petunjuk');
+  saveWb(wb,'id.os-UMKUM-template-v'+VER+'.xlsx');
+}
+function unduhLaporan(){
+  if(typeof XLSX==='undefined'){toast('Pustaka Excel belum termuat. Cek koneksi internet.');return}
+  const c=C(), f=R.dari, t=R.sampai, wb=XLSX.utils.book_new();
+  const per=(f?tglId(f):'awal')+' s/d '+(t?tglId(t):'sekarang');
+  XLSX.utils.book_append_sheet(wb,sheet(akunAoa(c),[10,34,14,14,8]),'Akun');
+  const ju=[['Tanggal','No Bukti','Keterangan','Kode Akun','Nama Akun','Debit','Kredit']];
+  c.jurnal.slice().sort((a,b)=>(a.tgl+a.no).localeCompare(b.tgl+b.no)).forEach(l=>{const a=c.coa.find(x=>x.kode===l.akun);ju.push([l.tgl,l.no,l.ket,l.akun,a?a.nama:'',l.d,l.k])});
+  XLSX.utils.book_append_sheet(wb,sheet(ju,[12,12,32,11,30,14,14],[5,6]),'Jurnal');
+  const ns=dataNS(c,t), a1=[[c.nama+' - Neraca Saldo sampai '+(t?tglId(t):'sekarang')],[],['Kode','Nama Akun','Debit','Kredit']];
+  ns.rows.forEach(r=>a1.push(r)); a1.push(['','Total',ns.td,ns.tk]);
+  XLSX.utils.book_append_sheet(wb,sheet(a1,[10,34,16,16],[2,3]),'Neraca Saldo');
+  const lr=dataLR(c,f,t), a2=[[c.nama+' - Laba Rugi '+per],[],['Kode','Nama Akun','Jumlah'],['','PENDAPATAN','']];
+  lr.p.forEach(r=>a2.push(r));a2.push(['','Total Pendapatan',lr.tp],['','BEBAN','']);lr.b.forEach(r=>a2.push(r));a2.push(['','Total Beban',lr.tb],['',lr.laba>=0?'LABA BERSIH':'RUGI BERSIH',lr.laba]);
+  XLSX.utils.book_append_sheet(wb,sheet(a2,[10,34,16],[2]),'Laba Rugi');
+  const nr=dataNR(c,t), a3=[[c.nama+' - Neraca per '+(t?tglId(t):'sekarang')],[],['Kode','Nama Akun','Jumlah'],['','ASET','']];
+  nr.a.forEach(r=>a3.push(r));a3.push(['','Total Aset',nr.TA],['','LIABILITAS','']);nr.l.forEach(r=>a3.push(r));a3.push(['','Total Liabilitas',nr.TL],['','EKUITAS','']);
+  nr.e.forEach(r=>a3.push(r));a3.push(['','Laba (Rugi) Berjalan',nr.laba],['','Total Ekuitas',nr.TE],['','Total Liabilitas + Ekuitas',nr.TL+nr.TE]);
+  XLSX.utils.book_append_sheet(wb,sheet(a3,[10,34,16],[2]),'Neraca');
+  const kb=[[c.nama+' - Kas dan Bank '+per],[],['Kode','Nama Akun','Saldo Awal','Masuk','Keluar','Saldo Akhir']];
+  dataKas(c,f,t).forEach(r=>kb.push(r));
+  XLSX.utils.book_append_sheet(wb,sheet(kb,[10,28,16,16,16,16],[2,3,4,5]),'Kas dan Bank');
+  const bb=[[c.nama+' - Buku Besar '+per]];
+  c.coa.slice().sort(byKode).forEach(a=>{const g=dataBB(c,a.kode,f,t); if(!g.rows.length&&!g.awal)return;
+    bb.push([],[a.kode+' '+a.nama],['Tanggal','No Bukti','Keterangan','Debit','Kredit','Saldo'],['','','Saldo awal','','',g.awal]);
+    g.rows.forEach(r=>bb.push(r)); bb.push(['','','Saldo akhir','','',g.akhir])});
+  XLSX.utils.book_append_sheet(wb,sheet(bb,[12,12,32,14,14,16],[3,4,5]),'Buku Besar');
+  saveWb(wb,'id.os-UMKUM-laporan-'+c.nama.replace(/[^\w-]+/g,'_')+'-'+today()+'.xlsx');
+}
+
+/* ---------- tampilan ---------- */
+let tab='perusahaan', armed='', draft=null, R={dari:'',sampai:today(),sub:'ns',akun:''}, importMsg='';
+const ICON={
+  perusahaan:'<svg viewBox="0 0 24 24"><path d="M4 21V8l8-5 8 5v13M9 21v-6h6v6M4 21h16"/></svg>',
+  jurnal:'<svg viewBox="0 0 24 24"><path d="M6 3h12v18H6zM9 8h6M9 12h6M9 16h4"/></svg>',
+  akun:'<svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16M8 3v18"/></svg>',
+  laporan:'<svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/></svg>',
+  excel:'<svg viewBox="0 0 24 24"><path d="M14 3H6v18h12V7zM14 3v4h4M9 12l5 5M14 12l-5 5"/></svg>'
+};
+const NAV=[['perusahaan','Usaha'],['jurnal','Jurnal'],['akun','Akun'],['laporan','Laporan'],['excel','Excel']];
+function newDraft(){return{tgl:today(),no:nextNo(C()),ket:'',lines:[{akun:'',d:'',k:''},{akun:'',d:'',k:''}]}}
+function opsAkun(c,sel){return '<option value="">Pilih akun</option>'+c.coa.slice().sort(byKode).map(a=>'<option value="'+esc(a.kode)+'"'+(a.kode===sel?' selected':'')+'>'+esc(a.kode+' '+a.nama)+'</option>').join('')}
+
+function render(){
+  $('#ver').textContent='v'+VER;
+  const kosong=!S.perusahaan.length;
+  $('#sw').hidden=kosong; $('#nav').hidden=kosong;
+  if(kosong){$('#view').innerHTML=vWelcome();return}
+  $('#sw').innerHTML=S.perusahaan.map(p=>'<option value="'+p.id+'"'+(p.id===S.aktif?' selected':'')+'>'+esc(p.nama)+'</option>').join('');
+  $('#nav').innerHTML=NAV.map(([k,l])=>'<button data-tab="'+k+'" class="'+(tab===k?'on':'')+'" aria-label="'+l+'">'+ICON[k]+'<span>'+l+'</span></button>').join('');
+  const v={perusahaan:vPerusahaan,jurnal:vJurnal,akun:vAkun,laporan:vLaporan,excel:vExcel}[tab];
+  $('#view').innerHTML=v();
+  if(tab==='jurnal')updateBal();
+}
+function armBtn(key,label,cls){return '<button class="sm dng'+(cls?' '+cls:'')+'" data-act="'+key.split(':')[0]+'" data-id="'+esc(key.split(':').slice(1).join(':'))+'">'+(armed===key?'Yakin? Tap lagi':label)+'</button>'}
+
+function vWelcome(){
+  return '<div class="card"><h2>Selamat datang</h2><p style="margin:0 0 10px">Aplikasi pembukuan sederhana untuk UMKM. Database masih kosong. Mulai dengan nama perusahaan kamu.</p><div style="display:flex;flex-direction:column;gap:8px"><label>Nama perusahaan<input id="p-nama" placeholder="Misal: Toko Maju Jaya"></label><button class="pri" data-act="tambahp">Mulai dengan daftar akun standar</button></div></div>'+
+  '<div class="card"><h2>Pindah dari perangkat lain?</h2><p class="muted" style="margin:0">Buat perusahaan dulu, lalu buka menu Excel dan impor file cadangan dari perangkat lama.</p></div>'+
+  '<div class="card"><h2>Ingin mencoba dulu?</h2><p class="muted" style="margin:0 0 10px">Muat perusahaan contoh berisi beberapa jurnal. Bisa dihapus kapan saja dari menu Usaha.</p><button data-act="contoh">Muat data contoh</button></div>';
+}
+function vPerusahaan(){
+  const c=C();
+  return '<div class="card"><h2>Perusahaan</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    S.perusahaan.map(p=>'<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px"><div><b>'+esc(p.nama)+'</b> '+(p.demo?'<span class="tag warn">data contoh</span>':'')+(p.id===S.aktif?' <span class="tag">aktif</span>':'')+
+      '<div class="muted">'+p.coa.length+' akun, '+new Set(p.jurnal.map(l=>l.no)).size+' jurnal</div></div><div class="row">'+
+      (p.id===S.aktif?'':'<button class="sm" data-act="pilih" data-id="'+p.id+'">Buka</button>')+
+      armBtn('hapusp:'+p.id,'Hapus')+'</div></div>').join('')+'</div></div>'+
+  '<div class="card"><h2>Tambah perusahaan</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    '<label>Nama perusahaan<input id="p-nama" placeholder="Misal: Toko Maju Jaya"></label>'+
+    '<button class="pri" data-act="tambahp">Buat dengan daftar akun standar</button>'+
+    '<div class="muted">Setiap perusahaan punya akun dan jurnal sendiri, tidak tercampur.</div></div></div>'+
+  '<div class="card"><h2>Tentang versi</h2><p style="margin:0 0 8px">id.os-UMKUM <b>v'+VER+'</b>. Data tersimpan di perangkat ini dan tidak ikut terbawa saat pasang ulang atau pindah perangkat. Ekspor ke Excel secara berkala, lalu impor di perangkat baru.</p>'+
+    '<h3>Riwayat versi</h3><ul class="log"><li><b>v1.1</b>: database kosong saat pertama dipasang, layar sambutan, bisa dipasang sebagai aplikasi dan jalan offline setelah dibuka sekali.</li><li><b>v1.0</b>: multi-perusahaan, daftar akun, jurnal umum, impor dan ekspor Excel, neraca saldo, laba rugi, neraca, buku besar, ringkasan kas dan bank.</li></ul>'+
+    '<h3 style="margin-top:10px">Belum ada (rencana)</h3><ul class="log"><li>Arus kas lengkap, tutup buku akhir tahun, penyusutan otomatis, kunci PIN, penyimpanan di server.</li></ul></div>';
+}
+
+function vJurnal(){
+  const c=C(); if(!draft)draft=newDraft();
+  const list=buktiList(c);
+  return '<div class="card"><h2>Jurnal baru</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    '<div class="grid2"><label>Tanggal<input type="date" id="f-tgl" value="'+draft.tgl+'"></label><label>No. bukti<input id="f-no" value="'+esc(draft.no)+'"></label></div>'+
+    '<label>Keterangan<input id="f-ket" value="'+esc(draft.ket)+'" placeholder="Misal: Penjualan tunai"></label>'+
+    draft.lines.map((l,i)=>'<div class="line"><select data-i="'+i+'" data-f="akun" aria-label="Akun baris '+(i+1)+'">'+opsAkun(c,l.akun)+'</select>'+
+      '<input data-i="'+i+'" data-f="d" inputmode="decimal" placeholder="Debit" value="'+esc(l.d)+'" aria-label="Debit baris '+(i+1)+'">'+
+      '<input data-i="'+i+'" data-f="k" inputmode="decimal" placeholder="Kredit" value="'+esc(l.k)+'" aria-label="Kredit baris '+(i+1)+'"></div>').join('')+
+    '<div id="bal" class="bal"></div>'+
+    '<div class="row"><button data-act="baris">+ Baris</button><button class="pri" id="simpanj" data-act="simpanj" style="flex:1">Simpan jurnal</button></div></div></div>'+
+  '<div class="card"><h2>Daftar jurnal ('+list.length+')</h2>'+(list.length?list.map(b=>{
+    const td=b.lines.reduce((s,l)=>s+l.d,0);
+    return '<div class="jr"><div class="h"><div><b>'+esc(b.no)+'</b> <span class="muted">'+tglId(b.tgl)+'</span><div>'+esc(b.ket)+'</div></div>'+armBtn('hapusj:'+b.no,'Hapus')+'</div>'+
+      '<div class="scroll"><table><tbody>'+b.lines.map(l=>{const a=c.coa.find(x=>x.kode===l.akun);return '<tr><td>'+(l.k?'&nbsp;&nbsp;&nbsp;':'')+esc(l.akun+' '+(a?a.nama:'(akun dihapus)'))+'</td><td class="n">'+(l.d?rp(l.d):'')+'</td><td class="n">'+(l.k?rp(l.k):'')+'</td></tr>'}).join('')+'</tbody></table></div></div>';
+  }).join(''):'<div class="muted">Belum ada jurnal. Isi formulir di atas atau impor dari Excel.</div>')+'</div>';
+}
+function updateBal(){
+  const el=$('#bal'); if(!el||!draft)return;
+  let d=0,k=0,ok=true,used=0;
+  draft.lines.forEach(l=>{const x=num(l.d||0),y=num(l.k||0);if(isNaN(x)||isNaN(y)||x<0||y<0)ok=false;d+=x||0;k+=y||0;
+    if((x||y)){used++;if(!l.akun||(x&&y))ok=false}});
+  const sel=Math.round(d-k), balanced=sel===0&&d>0&&ok&&used>=2;
+  el.className='bal '+(balanced?'ok':'bad');
+  el.textContent='Debit '+rp(d)+'  |  Kredit '+rp(k)+'  |  '+(sel===0?(d>0?'Seimbang':'Isi jumlahnya'):'Selisih '+rp(Math.abs(sel)))+(d===k&&d>0&&!ok?'  |  Cek akun atau angka':'');
+  const b=$('#simpanj'); if(b)b.disabled=!balanced;
+}
+function simpanJurnal(){
+  const c=C(), d=draft;
+  if(!validDate(d.tgl)){toast('Tanggal belum valid.');return}
+  const no=d.no.trim(); if(!no){toast('Isi nomor bukti.');return}
+  if(c.jurnal.some(l=>l.no===no)){toast('Nomor bukti '+no+' sudah dipakai.');return}
+  const rows=d.lines.filter(l=>num(l.d||0)||num(l.k||0)).map(l=>({id:uid(),tgl:d.tgl,no,ket:d.ket.trim(),akun:l.akun,d:num(l.d||0)||0,k:num(l.k||0)||0}));
+  c.jurnal.push(...rows); save(); draft=newDraft(); toast('Jurnal '+no+' tersimpan'); render();
+}
+
+function vAkun(){
+  const c=C();
+  const used=new Set(c.jurnal.map(l=>l.akun));
+  return '<div class="card"><h2>Daftar akun ('+c.coa.length+')</h2>'+TIPE.map(t=>{
+    const rows=c.coa.filter(a=>a.tipe===t).sort(byKode); if(!rows.length)return '';
+    return '<div class="scroll"><table><thead><tr><th colspan="3">'+TIPE_LBL[t]+'</th></tr></thead><tbody>'+rows.map(a=>'<tr><td style="width:56px">'+esc(a.kode)+'</td><td>'+esc(a.nama)+(a.kas?' <span class="tag">kas</span>':'')+(a.normal!==normalOf(a.tipe)?' <span class="tag warn">kontra</span>':'')+'</td><td class="n">'+(used.has(a.kode)?'<span class="muted">dipakai</span>':armBtn('hapusa:'+a.kode,'Hapus'))+'</td></tr>').join('')+'</tbody></table></div>';
+  }).join('')+'</div>'+
+  '<div class="card"><h2>Tambah akun</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    '<div class="grid2"><label>Kode<input id="a-kode" placeholder="1700"></label><label>Tipe<select id="a-tipe">'+TIPE.map(t=>'<option value="'+t+'">'+TIPE_LBL[t]+'</option>').join('')+'</select></label></div>'+
+    '<label>Nama akun<input id="a-nama" placeholder="Misal: Tanah"></label>'+
+    '<label style="flex-direction:row;align-items:center;gap:8px;font-size:13px"><input type="checkbox" id="a-kas" style="width:auto"> Akun kas atau bank</label>'+
+    '<button class="pri" data-act="tambaha">Tambah akun</button></div></div>';
+}
+
+function vLaporan(){
+  const c=C(), subs=[['ns','Neraca saldo'],['lr','Laba rugi'],['nr','Neraca'],['bb','Buku besar'],['kb','Kas & bank']];
+  let body='';
+  if(R.sub==='ns'){
+    const d=dataNS(c,R.sampai);
+    body='<h2>Neraca saldo</h2><div class="scroll"><table><thead><tr><th>Kode</th><th>Akun</th><th class="n">Debit</th><th class="n">Kredit</th></tr></thead><tbody>'+
+      d.rows.map(r=>'<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td><td class="n">'+(r[2]?rp(r[2]):'')+'</td><td class="n">'+(r[3]?rp(r[3]):'')+'</td></tr>').join('')+
+      '<tr class="tot"><td></td><td>Total</td><td class="n">'+rp(d.td)+'</td><td class="n">'+rp(d.tk)+'</td></tr></tbody></table></div>'+
+      '<div class="bal '+(Math.round(d.td-d.tk)===0?'ok':'bad')+'" style="margin-top:10px">'+(Math.round(d.td-d.tk)===0?'Seimbang: total debit sama dengan total kredit.':'Tidak seimbang, selisih '+rp(Math.abs(d.td-d.tk)))+'</div>';
+  }else if(R.sub==='lr'){
+    const d=dataLR(c,R.dari,R.sampai), sec=(t,r,total)=>'<tr class="sec"><td colspan="2">'+t+'</td></tr>'+r.map(x=>'<tr><td>'+esc(x[0]+' '+x[1])+'</td><td class="n">'+rp(x[2])+'</td></tr>').join('')+'<tr class="tot"><td>Total '+t.toLowerCase()+'</td><td class="n">'+rp(total)+'</td></tr>';
+    body='<h2>Laba rugi</h2><div class="scroll"><table><tbody>'+sec('Pendapatan',d.p,d.tp)+sec('Beban',d.b,d.tb)+'<tr class="tot"><td>'+(d.laba>=0?'Laba bersih':'Rugi bersih')+'</td><td class="n">'+rp(d.laba)+'</td></tr></tbody></table></div>';
+  }else if(R.sub==='nr'){
+    const d=dataNR(c,R.sampai), sec=(t,r)=>'<tr class="sec"><td colspan="2">'+t+'</td></tr>'+r.map(x=>'<tr><td>'+esc(x[0]+' '+x[1])+'</td><td class="n">'+rp(x[2])+'</td></tr>').join('');
+    body='<h2>Neraca</h2><div class="scroll"><table><tbody>'+sec('Aset',d.a)+'<tr class="tot"><td>Total aset</td><td class="n">'+rp(d.TA)+'</td></tr>'+
+      sec('Liabilitas',d.l)+'<tr class="tot"><td>Total liabilitas</td><td class="n">'+rp(d.TL)+'</td></tr>'+
+      sec('Ekuitas',d.e)+'<tr><td>Laba (rugi) berjalan</td><td class="n">'+rp(d.laba)+'</td></tr><tr class="tot"><td>Total ekuitas</td><td class="n">'+rp(d.TE)+'</td></tr>'+
+      '<tr class="tot"><td>Liabilitas + ekuitas</td><td class="n">'+rp(d.TL+d.TE)+'</td></tr></tbody></table></div>'+
+      '<div class="bal '+(d.selisih===0?'ok':'bad')+'" style="margin-top:10px">'+(d.selisih===0?'Seimbang: aset sama dengan liabilitas + ekuitas.':'Tidak seimbang, selisih '+rp(Math.abs(d.selisih)))+'</div>';
+  }else if(R.sub==='bb'){
+    if(!R.akun||!c.coa.find(a=>a.kode===R.akun))R.akun=(c.coa.slice().sort(byKode)[0]||{}).kode||'';
+    const d=dataBB(c,R.akun,R.dari,R.sampai);
+    body='<h2>Buku besar</h2><label>Akun<select id="r-akun">'+opsAkun(c,R.akun).replace('<option value="">Pilih akun</option>','')+'</select></label>'+(d?
+      '<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Tgl</th><th>Bukti</th><th>Uraian</th><th class="n">Debit</th><th class="n">Kredit</th><th class="n">Saldo</th></tr></thead><tbody>'+
+      '<tr><td colspan="5" class="muted">Saldo awal</td><td class="n">'+rp(d.awal)+'</td></tr>'+
+      d.rows.map(r=>'<tr><td>'+tglId(r[0]).slice(0,5)+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td class="n">'+(r[3]?rp(r[3]):'')+'</td><td class="n">'+(r[4]?rp(r[4]):'')+'</td><td class="n">'+rp(r[5])+'</td></tr>').join('')+
+      '<tr class="tot"><td colspan="5">Saldo akhir</td><td class="n">'+rp(d.akhir)+'</td></tr></tbody></table></div>':'');
+  }else{
+    const r=dataKas(c,R.dari,R.sampai);
+    body='<h2>Kas &amp; bank</h2>'+(r.length?'<div class="scroll"><table><thead><tr><th>Akun</th><th class="n">Awal</th><th class="n">Masuk</th><th class="n">Keluar</th><th class="n">Akhir</th></tr></thead><tbody>'+
+      r.map(x=>'<tr><td>'+esc(x[0]+' '+x[1])+'</td><td class="n">'+rp(x[2])+'</td><td class="n">'+rp(x[3])+'</td><td class="n">'+rp(x[4])+'</td><td class="n">'+rp(x[5])+'</td></tr>').join('')+
+      '<tr class="tot"><td>Total</td>'+[2,3,4,5].map(i=>'<td class="n">'+rp(r.reduce((s,x)=>s+x[i],0))+'</td>').join('')+'</tr></tbody></table></div>':'<div class="muted">Belum ada akun yang ditandai sebagai kas atau bank.</div>');
+  }
+  return '<div class="card"><div class="grid2"><label>Dari tanggal<input type="date" id="r-dari" value="'+R.dari+'"></label><label>Sampai tanggal<input type="date" id="r-sampai" value="'+R.sampai+'"></label></div>'+
+    '<div class="row" style="margin-top:10px">'+subs.map(([k,l])=>'<button class="chip'+(R.sub===k?' on':'')+'" data-act="sub" data-id="'+k+'">'+l+'</button>').join('')+'</div></div>'+
+    '<div class="card">'+body+'</div>';
+}
+
+function vExcel(){
+  const ready=typeof XLSX!=='undefined';
+  return '<div class="card"><h2>Alur kerja Excel</h2><ol class="log" style="padding-left:20px"><li>Unduh template, isi akun dan jurnal di Excel.</li><li>Impor file ke perusahaan aktif: <b>'+esc(C().nama)+'</b>.</li><li>Lihat laporan, lalu ekspor sebagai file Excel.</li></ol>'+
+    (ready?'':'<div class="msg bad" style="margin-top:10px">Pustaka Excel belum termuat. Perlu koneksi internet saat pertama membuka aplikasi.</div>')+'</div>'+
+  '<div class="card"><h2>Impor dari Excel</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    '<button data-act="template">Unduh template Excel</button>'+
+    '<label>Pilih file .xlsx<input type="file" id="x-file" accept=".xlsx,.xls,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></label>'+
+    (importMsg||'')+'</div></div>'+
+  '<div class="card"><h2>Ekspor ke Excel</h2><div style="display:flex;flex-direction:column;gap:8px">'+
+    '<div class="muted">Berisi akun, jurnal umum, neraca saldo, laba rugi, neraca, kas dan bank, serta buku besar, memakai periode di menu Laporan. File ini bisa diimpor kembali sebagai cadangan.</div>'+
+    '<button class="pri" data-act="ekspor">Unduh laporan lengkap (.xlsx)</button>'+
+    '<div class="muted">Jika unduhan tidak jalan, buka aplikasi lewat Chrome (alamat web atau ikon aplikasi yang terpasang).</div></div></div>';
+}
+
+/* ---------- interaksi ---------- */
+document.addEventListener('click',e=>{
+  const nb=e.target.closest('[data-tab]'); if(nb){tab=nb.dataset.tab;armed='';importMsg=importMsg&&tab==='excel'?importMsg:'';render();window.scrollTo(0,0);return}
+  const b=e.target.closest('[data-act]'); if(!b)return;
+  const act=b.dataset.act, id=b.dataset.id||'', key=act+':'+id, c=C();
+  if(/^hapus/.test(act)){ if(armed!==key){armed=key;render();return} armed=''; }
+  else armed='';
+  if(act==='pilih'){S.aktif=id;draft=null;save();render()}
+  else if(act==='tambahp'){
+    const n=($('#p-nama').value||'').trim(); if(!n){toast('Isi nama perusahaan.');return}
+    const pertama=!S.perusahaan.length;const p={id:uid(),nama:n,coa:mkCoa(),jurnal:[]};S.perusahaan.push(p);S.aktif=p.id;draft=null;if(pertama)tab='jurnal';save();toast('Perusahaan dibuat');render();
+  }
+  else if(act==='hapusp'){S.perusahaan=S.perusahaan.filter(p=>p.id!==id);S.aktif=S.perusahaan.length?(S.aktif===id?S.perusahaan[0].id:S.aktif):'';draft=null;tab='perusahaan';save();render()}
+  else if(act==='contoh'){const p=sample();S.perusahaan.push(p);S.aktif=p.id;draft=null;tab='laporan';save();render()}
+  else if(act==='baris'){draft.lines.push({akun:'',d:'',k:''});render()}
+  else if(act==='simpanj')simpanJurnal();
+  else if(act==='hapusj'){c.jurnal=c.jurnal.filter(l=>l.no!==id);save();render()}
+  else if(act==='hapusa'){c.coa=c.coa.filter(a=>a.kode!==id);save();render()}
+  else if(act==='tambaha'){
+    const kode=($('#a-kode').value||'').trim(), nama=($('#a-nama').value||'').trim(), tipe=$('#a-tipe').value;
+    if(!kode||!nama){toast('Isi kode dan nama akun.');return}
+    if(c.coa.some(a=>a.kode===kode)){toast('Kode '+kode+' sudah ada.');return}
+    c.coa.push({kode,nama,tipe,normal:normalOf(tipe),kas:$('#a-kas').checked});save();toast('Akun ditambahkan');render();
+  }
+  else if(act==='sub'){R.sub=id;render()}
+  else if(act==='template')unduhTemplate();
+  else if(act==='ekspor')unduhLaporan();
+});
+document.addEventListener('input',e=>{
+  const t=e.target;
+  if(t.id==='f-tgl'){draft.tgl=t.value;return} if(t.id==='f-no'){draft.no=t.value;return} if(t.id==='f-ket'){draft.ket=t.value;return}
+  if(t.dataset&&t.dataset.f){const l=draft.lines[+t.dataset.i];l[t.dataset.f]=t.value;
+    if(t.dataset.f==='d'&&t.value)l.k=''; if(t.dataset.f==='k'&&t.value)l.d='';
+    if((t.dataset.f==='d'||t.dataset.f==='k')){const row=t.parentElement;row.querySelectorAll('input').forEach(i=>{if(i.dataset.f!==t.dataset.f&&t.value)i.value=''})}
+    updateBal();return}
+  if(t.id==='r-dari'){R.dari=t.value;render()} else if(t.id==='r-sampai'){R.sampai=t.value;render()}
+});
+document.addEventListener('change',e=>{
+  const t=e.target;
+  if(t.id==='sw'){S.aktif=t.value;draft=null;armed='';save();render();return}
+  if(t.id==='r-akun'){R.akun=t.value;render();return}
+  if(t.id==='x-file'&&t.files[0])bacaFile(t.files[0]);
+});
+function bacaFile(f){
+  if(typeof XLSX==='undefined'){importMsg='<div class="msg bad">Pustaka Excel belum termuat. Cek koneksi internet lalu muat ulang.</div>';render();return}
+  const rd=new FileReader();
+  rd.onerror=()=>{importMsg='<div class="msg bad">File tidak bisa dibaca.</div>';render()};
+  rd.onload=ev=>{
+    try{
+      const wb=XLSX.read(new Uint8Array(ev.target.result),{type:'array',cellDates:true});
+      const c=C(), {err,res}=analisisImpor(c,wb);
+      if(err.length){
+        importMsg='<div class="msg bad"><b>Impor dibatalkan, ada '+err.length+' masalah. Tidak ada data yang diubah.</b><ul>'+err.slice(0,25).map(x=>'<li>'+esc(x)+'</li>').join('')+(err.length>25?'<li>dan '+(err.length-25)+' masalah lain.</li>':'')+'</ul></div>';
+      }else{
+        c.coa=res.coa; c.jurnal.push(...res.jurnal); if(c.demo&&res.jurnal.length)c.demo=false; save();
+        importMsg='<div class="msg ok"><b>Impor berhasil</b><ul><li>'+res.akun.length+' akun diproses</li><li>'+res.jurnal.length+' baris jurnal ditambahkan ('+new Set(res.jurnal.map(l=>l.no)).size+' bukti)</li></ul></div>';
+        draft=null;
+      }
+    }catch(x){importMsg='<div class="msg bad">File tidak bisa dibuka sebagai Excel. Pastikan formatnya .xlsx. ('+esc(x.message||x)+')</div>'}
+    render();
+  };
+  rd.readAsArrayBuffer(f);
+}
+render();
+try{if('serviceWorker' in navigator&&location.protocol.indexOf('http')===0)navigator.serviceWorker.register('sw.js').catch(()=>{})}catch(e){}
+</script>
+
+</body></html>
