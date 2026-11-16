@@ -1,5 +1,5 @@
-/* id.os-UMKUM v1.1 - cache agar bisa dibuka tanpa internet setelah dibuka sekali */
-const CACHE='id-os-umkum-v1.1';
+/* id.os-UMKUM v2.0 - cache agar bisa dibuka tanpa internet setelah dibuka sekali */
+const CACHE='id-os-umkum-v2.0';
 const CORE=['./','index.html','manifest.webmanifest','icon-192.png','icon-512.png'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).then(()=>self.skipWaiting()));

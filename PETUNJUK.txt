@@ -1,0 +1,21 @@
+id.os-UMKUM v2.0 - CARA PASANG / PERBARUI (tanpa koding)
+
+ISI FOLDER (5 file, semuanya wajib diunggah):
+  index.html, manifest.webmanifest, sw.js, icon-192.png, icon-512.png
+
+MEMPERBARUI DARI v1.1 KE v2.0 (repository mudah-system yang sudah ada)
+ 1. Ekstrak zip ini. Buka repository di github.com, klik "Add file" > "Upload files".
+ 2. Seret kelima file dari DALAM folder (bukan foldernya). Nama yang sama akan menimpa yang lama.
+ 3. Klik "Commit changes". Tunggu 1-2 menit.
+ 4. Buka https://firdausmuawam.github.io/mudah-system/ lalu muat ulang 2 kali
+    (atau tutup dan buka lagi aplikasinya) sampai pojok atas tertulis v2.0.
+ 5. Data lama (v1.1) di perangkat tetap ada dan otomatis disesuaikan ke 9 jenis akun.
+    Kamu akan diminta membuat akun Admin pertama.
+
+PERANGKAT BARU: buka alamat yang sama, instal, buat akun Admin, database mulai kosong.
+PINDAH DATA: menu Excel > Unduh semua hasil, lalu di perangkat baru buat perusahaan dan impor file itu.
+
+CATATAN
+ - Data dan kata sandi tersimpan di perangkat. Lampiran juga di perangkat dan tidak ikut ekspor Excel.
+ - Menghapus data situs Chrome atau mencopot aplikasi menghapus semua data. Ekspor Excel berkala.
+ - Jangan unggah file Excel berisi data keuangan ke repository publik.
