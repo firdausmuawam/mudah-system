@@ -73,6 +73,7 @@ th.c{text-align:center;border-bottom:1px solid var(--line)}
 td.n,th.n{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 tr.tot td{font-weight:700;border-top:2px solid var(--ink);border-bottom:0}
 tr.sec td{font-weight:700;background:var(--bg);color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+tr.sub td{font-weight:600;color:var(--accent);font-size:12px;padding-top:10px}
 .bal{padding:8px 10px;border-radius:8px;font-size:13px;font-variant-numeric:tabular-nums}
 .bal.ok{background:var(--ok-soft);color:var(--ok)}
 .bal.bad{background:var(--warn-soft);color:var(--warn)}
@@ -106,7 +107,6 @@ ul.log li{margin:2px 0}
 .lamp{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px}
 .pv{width:100%;height:84px;border-radius:8px;border:1px solid var(--line);background-size:cover;background-position:center}
 @media (prefers-reduced-motion:no-preference){button{transition:background .15s,color .15s}}
-details.kls{border-top:1px solid var(--line,#ddd)}details.kls>summary{cursor:pointer;padding:10px 2px;font-size:14px}details.kls>summary b{display:inline-block;min-width:16px}
 </style>
 
 <div class="top" id="top">
@@ -122,20 +122,450 @@ details.kls{border-top:1px solid var(--line,#ddd)}details.kls>summary{cursor:poi
 <script>
 /* ===== id.os-UMKUM v2.0 : inti data dan perhitungan ===== */
 const VER='2.1', KEY='id.os-umkum.data';
-const TIPE=['lancar','piutang','prepaid','tetap','hutang','kewajiban','pajak','ekuitas','pendapatan','beban'];
-const TIPE_LBL={lancar:'Aset Lancar',piutang:'Piutang',prepaid:'Prepaid',tetap:'Aktiva Tetap',hutang:'Hutang Usaha / Pihak Lain',kewajiban:'Kewajiban Lain',pajak:'Pajak',ekuitas:'Ekuitas',pendapatan:'Pendapatan',beban:'Beban'};
-const TIPE_ALIAS={asetlancar:'lancar',lancar:'lancar',aset:'lancar',kasdanbank:'lancar',piutang:'piutang',prepaid:'prepaid',biayadibayardimuka:'prepaid',dibayardimuka:'prepaid',aktivatetap:'tetap',asettetap:'tetap',tetap:'tetap',hutang:'hutang',utang:'hutang',liabilitas:'hutang',kewajiban:'kewajiban',pajak:'pajak',tax:'pajak',ekuitas:'ekuitas',modal:'ekuitas',pendapatan:'pendapatan',penghasilan:'pendapatan',beban:'beban',biaya:'beban'};
+const TIPE=['lancar','piutang','prepaid','tetap','hutang','pajak','ekuitas','pendapatan','beban'];
+const TIPE_LBL={lancar:'Aset Lancar',piutang:'Piutang',prepaid:'Prepaid',tetap:'Aktiva Tetap',hutang:'Hutang',pajak:'Pajak',ekuitas:'Ekuitas',pendapatan:'Pendapatan',beban:'Beban'};
+const TIPE_ALIAS={asetlancar:'lancar',lancar:'lancar',aset:'lancar',kasdanbank:'lancar',piutang:'piutang',prepaid:'prepaid',biayadibayardimuka:'prepaid',dibayardimuka:'prepaid',aktivatetap:'tetap',asettetap:'tetap',tetap:'tetap',hutang:'hutang',utang:'hutang',liabilitas:'hutang',kewajiban:'hutang',pajak:'pajak',tax:'pajak',ekuitas:'ekuitas',modal:'ekuitas',pendapatan:'pendapatan',penghasilan:'pendapatan',beban:'beban',biaya:'beban'};
 const normalOf=t=>['lancar','piutang','prepaid','tetap','beban'].includes(t)?'D':'K';
-const sect=a=>a.tipe==='pajak'?(a.normal==='D'?'aset':'liabilitas'):({lancar:'aset',piutang:'aset',prepaid:'aset',tetap:'aset',hutang:'liabilitas',kewajiban:'liabilitas'}[a.tipe]||a.tipe);
+const sect=a=>a.tipe==='pajak'?(a.normal==='D'?'aset':'liabilitas'):({lancar:'aset',piutang:'aset',prepaid:'aset',tetap:'aset',hutang:'liabilitas'}[a.tipe]||a.tipe);
 const sectD=s=>s==='aset'||s==='beban';
 const isSub=a=>a&&(a.tipe==='piutang'||a.tipe==='hutang');
-/* COA lengkap kelas 1-9 (dokumen COA Lengkap Poin A-J, hlm 1-14). Kolom: kode,nama,tipe,saldo normal,flag(k=kas,i=induk) */
-const DEF_ROWS=[["1100","Aset Lancar","lancar","D","i"],["1101","Kas Besar","lancar","D","k"],["1102","Kas Kecil","lancar","D","k"],["1103","Kas Operasional","lancar","D","k"],["1104","Bank BCA","lancar","D","k"],["1105","Bank Mandiri","lancar","D","k"],["1106","Bank BRI","lancar","D","k"],["1107","Bank BNI","lancar","D","k"],["1108","Deposito Jangka Pendek","lancar","D",""],["1110","Piutang Usaha","piutang","D","p"],["1111","Piutang Dagang","piutang","D","p"],["1112","Piutang Karyawan","piutang","D","p"],["1113","Piutang Direksi","piutang","D","p"],["1114","Piutang Lain-lain","piutang","D","p"],["1115","Cadangan Kerugian Piutang","lancar","K",""],["1120","Persediaan Barang Dagang","lancar","D",""],["1121","Persediaan Bahan Baku","lancar","D",""],["1122","Persediaan Barang Dalam Proses","lancar","D",""],["1123","Persediaan Barang Jadi","lancar","D",""],["1124","Persediaan Barang Pembantu","lancar","D",""],["1125","Persediaan Suku Cadang","lancar","D",""],["1126","Persediaan Barang dalam Perjalanan","lancar","D",""],["1130","Uang Muka Pembelian","prepaid","D",""],["1131","Uang Muka Supplier","prepaid","D",""],["1132","Uang Muka Impor","prepaid","D",""],["1133","Uang Muka Biaya","prepaid","D",""],["1140","Perlengkapan Kantor","prepaid","D",""],["1141","Perlengkapan Gudang","prepaid","D",""],["1142","Perlengkapan Produksi","prepaid","D",""],["1143","Perlengkapan Kebersihan","prepaid","D",""],["1150","Biaya Dibayar di Muka","prepaid","D",""],["1151","Sewa Dibayar di Muka","prepaid","D",""],["1152","Asuransi Dibayar di Muka","prepaid","D",""],["1153","Iklan Dibayar di Muka","prepaid","D",""],["1154","Pemeliharaan Dibayar di Muka","prepaid","D",""],["1160","Pajak Dibayar di Muka","pajak","D",""],["1161","PPN Masukan (PPN IN)","pajak","D",""],["1162","PPN Masukan Pembelian Barang","pajak","D",""],["1163","PPN Masukan Pembelian Jasa","pajak","D",""],["1164","PPN Masukan Pembelian Aset Tetap","pajak","D",""],["1165","PPN Masukan Impor","pajak","D",""],["1166","PPN Masukan Belum Dikreditkan","pajak","D",""],["1167","PPN Masukan Tidak Dapat Dikreditkan","pajak","D",""],["1168","PPh 21 Dibayar di Muka","pajak","D",""],["1169","PPh 22 Dibayar di Muka","pajak","D",""],["1170","PPh 23 Dibayar di Muka","pajak","D",""],["1171","PPh 25 Angsuran Dibayar","pajak","D",""],["1172","PPh 26 Dibayar di Muka","pajak","D",""],["1173","PPh Final Dibayar di Muka","pajak","D",""],["1174","PPh Badan Dibayar di Muka","pajak","D",""],["1175","Pajak Luar Negeri Dibayar di Muka","pajak","D",""],["1176","Lebih Bayar PPN","pajak","D",""],["1177","Piutang Restitusi PPN","pajak","D",""],["1178","Piutang Restitusi PPh","pajak","D",""],["1179","Klaim Pengembalian Pajak","pajak","D",""],["1180","Pajak Tangguhan Aset","pajak","D",""],["1200","Aset Tetap","tetap","D","i"],["1201","Tanah","tetap","D",""],["1202","Bangunan","tetap","D",""],["1203","Renovasi Bangunan","tetap","D",""],["1204","Kendaraan Operasional","tetap","D",""],["1205","Mesin Produksi","tetap","D",""],["1206","Peralatan Produksi","tetap","D",""],["1207","Peralatan Kantor","tetap","D",""],["1208","Komputer dan Laptop","tetap","D",""],["1209","Furniture dan Inventaris","tetap","D",""],["1210","Peralatan Gudang","tetap","D",""],["1211","Instalasi Listrik","tetap","D",""],["1212","Instalasi Air","tetap","D",""],["1213","Aset dalam Pembangunan","tetap","D",""],["1214","Aset Hak Guna","tetap","D",""],["1220","Akumulasi Penyusutan Bangunan","tetap","K",""],["1221","Akumulasi Penyusutan Kendaraan","tetap","K",""],["1222","Akumulasi Penyusutan Mesin","tetap","K",""],["1223","Akumulasi Penyusutan Peralatan","tetap","K",""],["1224","Akumulasi Penyusutan Komputer","tetap","K",""],["1225","Akumulasi Penyusutan Furniture","tetap","K",""],["1226","Akumulasi Penyusutan Aset Hak Guna","tetap","K",""],["1230","Aset Tak Berwujud","tetap","D",""],["1231","Software","tetap","D",""],["1232","Lisensi","tetap","D",""],["1233","Hak Paten","tetap","D",""],["1234","Goodwill","tetap","D",""],["1235","Akumulasi Amortisasi","tetap","K",""],["1240","PPN Masukan Aset Tetap","pajak","D",""],["1241","PPN Masukan Kendaraan","pajak","D",""],["1242","PPN Masukan Mesin","pajak","D",""],["1243","PPN Masukan Bangunan","pajak","D",""],["1244","PPN Masukan Peralatan","pajak","D",""],["1245","PPN Masukan Renovasi","pajak","D",""],["1246","Pajak Pembelian Aset Belum Dikreditkan","pajak","D",""],["1247","Pajak Tangguhan atas Aset","pajak","D",""],["1248","Selisih Penyusutan Komersial dan Fiskal","pajak","D",""],["2100","Kewajiban Jangka Pendek","kewajiban","K","i"],["2101","Utang Usaha","hutang","K","h"],["2102","Utang Supplier","hutang","K","h"],["2103","Utang Pembelian","hutang","K","h"],["2104","Utang Ekspedisi","hutang","K","h"],["2105","Utang Gaji","kewajiban","K",""],["2106","Utang THR","kewajiban","K",""],["2107","Utang Bonus","kewajiban","K",""],["2108","Utang Komisi","kewajiban","K",""],["2109","Utang Bunga","kewajiban","K",""],["2110","Utang Listrik","kewajiban","K",""],["2111","Utang Air","kewajiban","K",""],["2112","Utang Telepon","kewajiban","K",""],["2113","Utang Internet","kewajiban","K",""],["2114","Utang Sewa","kewajiban","K",""],["2115","Utang Biaya Operasional","kewajiban","K",""],["2116","Pendapatan Diterima di Muka","kewajiban","K",""],["2117","Uang Muka Penjualan","kewajiban","K",""],["2118","Utang Lain-lain","hutang","K","h"],["2120","PPN Keluaran (PPN OUT)","pajak","K",""],["2121","PPN Keluaran Penjualan Barang","pajak","K",""],["2122","PPN Keluaran Penjualan Jasa","pajak","K",""],["2123","PPN Keluaran Penjualan Aset","pajak","K",""],["2124","PPN Keluaran Uang Muka Penjualan","pajak","K",""],["2125","PPN Keluaran Retur Penjualan","pajak","K",""],["2126","PPN Keluaran Belum Dilunasi","pajak","K",""],["2127","PPN Keluaran Transaksi Lainnya","pajak","K",""],["2128","Utang PPN Masa Pajak","pajak","K",""],["2129","Utang PPN Kurang Bayar","pajak","K",""],["2130","PPN yang Harus Disetor","pajak","K",""],["2131","PPN dalam Proses Rekonsiliasi","pajak","K",""],["2140","Utang Pajak","pajak","K",""],["2141","Utang PPh 21","pajak","K",""],["2142","Utang PPh 22","pajak","K",""],["2143","Utang PPh 23","pajak","K",""],["2144","Utang PPh 26","pajak","K",""],["2145","Utang PPh 4 Ayat 2","pajak","K",""],["2146","Utang PPh Final","pajak","K",""],["2147","Utang PPh atas Jasa","pajak","K",""],["2148","Utang PPh atas Sewa","pajak","K",""],["2149","Utang PPh atas Dividen","pajak","K",""],["2150","Utang PPh atas Bunga","pajak","K",""],["2151","Utang PPh atas Royalti","pajak","K",""],["2152","Utang Pajak Daerah","pajak","K",""],["2153","Utang Bea Meterai","pajak","K",""],["2154","Utang Pajak Impor","pajak","K",""],["2155","Utang PPN Impor","pajak","K",""],["2156","Utang PPh 22 Impor","pajak","K",""],["2157","Utang Pajak Lainnya","pajak","K",""],["2200","Kewajiban Jangka Panjang","kewajiban","K","i"],["2201","Utang Bank Jangka Panjang","hutang","K","h"],["2202","Utang Leasing","hutang","K","h"],["2203","Utang Pembiayaan Kendaraan","hutang","K","h"],["2204","Utang Pembiayaan Mesin","hutang","K","h"],["2205","Utang Obligasi","hutang","K","h"],["2206","Liabilitas Sewa Jangka Panjang","hutang","K","h"],["2207","Utang Jangka Panjang Lainnya","hutang","K","h"],["2210","Liabilitas Pajak Tangguhan","kewajiban","K",""],["3000","Ekuitas","ekuitas","K","i"],["3101","Modal Pemilik","ekuitas","K",""],["3102","Modal Disetor","ekuitas","K",""],["3103","Tambahan Modal Disetor","ekuitas","K",""],["3104","Agio Saham","ekuitas","K",""],["3105","Prive Pemilik","ekuitas","D",""],["3106","Saldo Laba","ekuitas","K",""],["3107","Laba Tahun Berjalan","ekuitas","K",""],["3108","Rugi Tahun Berjalan","ekuitas","D",""],["3109","Dividen","ekuitas","D",""],["3110","Cadangan Umum","ekuitas","K",""],["3111","Koreksi Saldo Laba","ekuitas","K",""],["3112","Selisih Revaluasi Aset","ekuitas","K",""],["3120","Pajak atas Dividen","ekuitas","D",""],["3121","Utang PPh Dividen","pajak","K",""],["3122","Pajak Tangguhan atas Revaluasi","ekuitas","D",""],["3123","Koreksi Pajak Periode Sebelumnya","ekuitas","D",""],["3124","Dampak Pajak atas Koreksi Ekuitas","ekuitas","D",""],["4100","Pendapatan Usaha","pendapatan","K","i"],["4101","Penjualan Barang Dagang","pendapatan","K",""],["4102","Penjualan Tunai","pendapatan","K",""],["4103","Penjualan Kredit","pendapatan","K",""],["4104","Penjualan Produk","pendapatan","K",""],["4105","Penjualan Bahan Baku","pendapatan","K",""],["4106","Penjualan Barang Jadi","pendapatan","K",""],["4107","Pendapatan Jasa","pendapatan","K",""],["4108","Pendapatan Instalasi","pendapatan","K",""],["4109","Pendapatan Maintenance","pendapatan","K",""],["4110","Pendapatan Proyek","pendapatan","K",""],["4111","Pendapatan Kontrak","pendapatan","K",""],["4112","Pendapatan Sewa","pendapatan","K",""],["4113","Pendapatan Komisi","pendapatan","K",""],["4114","Pendapatan Pengiriman","pendapatan","K",""],["4115","Pendapatan Konsultasi","pendapatan","K",""],["4116","Pendapatan Royalti","pendapatan","K",""],["4117","Pendapatan Ekspor","pendapatan","K",""],["4118","Pendapatan Lain-lain","pendapatan","K",""],["4200","Pengurang Pendapatan","pendapatan","D","i"],["4201","Retur Penjualan","pendapatan","D",""],["4202","Potongan Penjualan","pendapatan","D",""],["4203","Diskon Penjualan","pendapatan","D",""],["4204","Pembatalan Penjualan","pendapatan","D",""],["4205","Koreksi Penjualan","pendapatan","D",""],["4206","Pengembalian Barang","pendapatan","D",""],["4300","Akun Pajak Penjualan","pajak","K","i"],["4301","PPN Keluaran Penjualan Barang","pajak","K",""],["4302","PPN Keluaran Penjualan Jasa","pajak","K",""],["4303","PPN Keluaran Penjualan Proyek","pajak","K",""],["4304","PPN Keluaran Penjualan Aset","pajak","K",""],["4305","PPN Keluaran Uang Muka","pajak","K",""],["4306","Koreksi PPN Keluaran","pajak","D",""],["4307","PPN atas Retur Penjualan","pajak","D",""],["4308","PPN atas Pembatalan Transaksi","pajak","D",""],["4309","Pajak Penjualan Ekspor","pajak","K",""],["4310","Pendapatan DPP PPN","pendapatan","K",""],["4311","Pendapatan Non-PPN","pendapatan","K",""],["4312","Pendapatan Dibebaskan PPN","pendapatan","K",""],["4313","Pendapatan PPN Tidak Dipungut","pendapatan","K",""],["5100","Harga Pokok Penjualan","beban","D","i"],["5101","Persediaan Awal","beban","D",""],["5102","Pembelian Barang Dagang","beban","D",""],["5103","Pembelian Bahan Baku","beban","D",""],["5104","Pembelian Barang Jadi","beban","D",""],["5105","Pembelian Barang Pembantu","beban","D",""],["5106","Pembelian Suku Cadang","beban","D",""],["5107","Biaya Angkut Pembelian","beban","D",""],["5108","Biaya Bongkar Muat","beban","D",""],["5109","Biaya Impor","beban","D",""],["5110","Biaya Bea Masuk","beban","D",""],["5111","Biaya Gudang Pembelian","beban","D",""],["5112","Retur Pembelian","beban","K",""],["5113","Potongan Pembelian","beban","K",""],["5114","Persediaan Akhir","beban","K",""],["5115","Harga Pokok Penjualan","beban","D",""],["5200","Biaya Produksi","beban","D","i"],["5201","Bahan Baku Terpakai","beban","D",""],["5202","Tenaga Kerja Langsung","beban","D",""],["5203","Biaya Overhead Pabrik","beban","D",""],["5204","Biaya Listrik Produksi","beban","D",""],["5205","Biaya Air Produksi","beban","D",""],["5206","Biaya Gas Produksi","beban","D",""],["5207","Biaya Penyusutan Mesin","beban","D",""],["5208","Biaya Pemeliharaan Mesin","beban","D",""],["5209","Biaya Kemasan","beban","D",""],["5210","Biaya Pengawasan Produksi","beban","D",""],["5211","Biaya Kualitas Produksi","beban","D",""],["5212","Biaya Tenaga Kerja Tidak Langsung","beban","D",""],["5213","Biaya Pabrik Lainnya","beban","D",""],["5300","Pajak Pembelian dan Produksi","beban","D","i"],["5301","PPN Masukan Pembelian Barang","pajak","D",""],["5302","PPN Masukan Pembelian Bahan Baku","pajak","D",""],["5303","PPN Masukan Pembelian Jasa","pajak","D",""],["5304","PPN Masukan Biaya Angkut","pajak","D",""],["5305","PPN Masukan Impor","pajak","D",""],["5306","PPN Masukan Pembelian Kemasan","pajak","D",""],["5307","PPN Masukan Overhead Pabrik","pajak","D",""],["5308","PPN Masukan Tidak Dapat Dikreditkan","beban","D",""],["5309","PPN Masukan Belum Dikreditkan","pajak","D",""],["5310","PPh 22 Impor Dibayar di Muka","pajak","D",""],["5311","PPh 23 Dipotong Supplier","pajak","D",""],["5312","PPh 4 Ayat 2 Dipotong Supplier","pajak","D",""],["5313","Bea Masuk","beban","D",""],["5314","Pajak dan Retribusi Produksi","beban","D",""],["5315","Koreksi Pajak Pembelian","beban","D",""],["6100","Beban Karyawan","beban","D","i"],["6101","Beban Gaji","beban","D",""],["6102","Beban Upah","beban","D",""],["6103","Beban THR","beban","D",""],["6104","Beban Bonus","beban","D",""],["6105","Beban Tunjangan","beban","D",""],["6106","Beban Lembur","beban","D",""],["6107","Beban BPJS Kesehatan","beban","D",""],["6108","Beban BPJS Ketenagakerjaan","beban","D",""],["6109","Beban Pesangon","beban","D",""],["6110","Beban Rekrutmen","beban","D",""],["6111","Beban Pelatihan Karyawan","beban","D",""],["6112","Beban Kesejahteraan Karyawan","beban","D",""],["6113","Beban Makan Karyawan","beban","D",""],["6114","Beban Transportasi Karyawan","beban","D",""],["6200","Beban Administrasi","beban","D","i"],["6201","Beban ATK","beban","D",""],["6202","Beban Fotokopi","beban","D",""],["6203","Beban Percetakan","beban","D",""],["6204","Beban Listrik Kantor","beban","D",""],["6205","Beban Air Kantor","beban","D",""],["6206","Beban Telepon","beban","D",""],["6207","Beban Internet","beban","D",""],["6208","Beban Sewa Kantor","beban","D",""],["6209","Beban Kebersihan","beban","D",""],["6210","Beban Keamanan","beban","D",""],["6211","Beban Konsumsi","beban","D",""],["6212","Beban Perlengkapan","beban","D",""],["6213","Beban Perawatan Gedung","beban","D",""],["6214","Beban Perawatan Peralatan","beban","D",""],["6215","Beban Administrasi Bank","beban","D",""],["6216","Beban Jasa Profesional","beban","D",""],["6217","Beban Audit","beban","D",""],["6218","Beban Konsultan","beban","D",""],["6219","Beban Legalitas","beban","D",""],["6220","Beban Notaris","beban","D",""],["6221","Beban Perjalanan Dinas","beban","D",""],["6222","Beban Transportasi","beban","D",""],["6223","Beban Bensin","beban","D",""],["6224","Beban Parkir dan Tol","beban","D",""],["6225","Beban Pengiriman Dokumen","beban","D",""],["6226","Beban Langganan Software","beban","D",""],["6227","Beban Penyusutan","beban","D",""],["6228","Beban Amortisasi","beban","D",""],["6229","Beban Asuransi","beban","D",""],["6230","Beban Operasional Lainnya","beban","D",""],["6300","Beban Pemasaran","beban","D","i"],["6301","Beban Iklan","beban","D",""],["6302","Beban Promosi","beban","D",""],["6303","Beban Digital Marketing","beban","D",""],["6304","Beban Marketplace","beban","D",""],["6305","Beban Komisi Penjualan","beban","D",""],["6306","Beban Entertainment","beban","D",""],["6307","Beban Representasi","beban","D",""],["6308","Beban Pameran","beban","D",""],["6309","Beban Sponsorship","beban","D",""],["6310","Beban Diskon Promosi","beban","D",""],["6311","Beban Pengiriman Penjualan","beban","D",""],["6312","Beban Marketing Lainnya","beban","D",""],["6400","Beban Pajak Operasional","beban","D","i"],["6401","Beban PPN Tidak Dapat Dikreditkan","beban","D",""],["6402","Beban PPh Final","beban","D",""],["6403","Beban PBB","beban","D",""],["6404","Beban Pajak Kendaraan","beban","D",""],["6405","Beban Bea Meterai","beban","D",""],["6406","Beban Pajak Reklame","beban","D",""],["6407","Beban Pajak Daerah","beban","D",""],["6408","Beban Retribusi Daerah","beban","D",""],["6409","Beban Pajak dan Retribusi Lainnya","beban","D",""],["6410","Beban Denda Pajak","beban","D",""],["6411","Beban Bunga Pajak","beban","D",""],["6412","Beban Sanksi Administrasi Pajak","beban","D",""],["6500","PPN Masukan Beban Operasional","beban","D","i"],["6501","PPN Masukan Listrik","pajak","D",""],["6502","PPN Masukan Internet","pajak","D",""],["6503","PPN Masukan Telepon","pajak","D",""],["6504","PPN Masukan Sewa","pajak","D",""],["6505","PPN Masukan Jasa Konsultan","pajak","D",""],["6506","PPN Masukan Jasa Profesional","pajak","D",""],["6507","PPN Masukan Transportasi","pajak","D",""],["6508","PPN Masukan Perawatan","pajak","D",""],["6509","PPN Masukan Iklan","pajak","D",""],["6510","PPN Masukan Promosi","pajak","D",""],["6511","PPN Masukan Jasa Pengiriman","pajak","D",""],["6512","PPN Masukan Perlengkapan Kantor","pajak","D",""],["6513","PPN Masukan Biaya Lainnya","pajak","D",""],["6514","PPN Masukan Tidak Dapat Dikreditkan","beban","D",""],["6600","PPh atas Biaya Operasional","beban","D","i"],["6601","PPh 21 atas Tenaga Kerja","beban","D",""],["6602","PPh 23 atas Jasa","beban","D",""],["6603","PPh 23 atas Sewa Harta Selain Tanah/Bangunan","beban","D",""],["6604","PPh 4 Ayat 2 atas Sewa Tanah/Bangunan","beban","D",""],["6605","PPh 23 atas Royalti","beban","D",""],["6606","PPh 23 atas Bunga","beban","D",""],["6607","PPh 26 atas Pembayaran ke Luar Negeri","beban","D",""],["6608","PPh atas Jasa Profesional","beban","D",""],["6609","PPh atas Jasa Konsultan","beban","D",""],["6610","PPh atas Jasa Konstruksi","beban","D",""],["6611","PPh atas Jasa Lainnya","beban","D",""],["7100","Pendapatan Nonoperasional","pendapatan","K","i"],["7101","Pendapatan Bunga Bank","pendapatan","K",""],["7102","Pendapatan Deposito","pendapatan","K",""],["7103","Pendapatan Dividen","pendapatan","K",""],["7104","Pendapatan Selisih Kurs","pendapatan","K",""],["7105","Keuntungan Penjualan Aset","pendapatan","K",""],["7106","Pendapatan Kompensasi","pendapatan","K",""],["7107","Pendapatan Lain-lain","pendapatan","K",""],["7200","Beban Nonoperasional","beban","D","i"],["7201","Beban Bunga Bank","beban","D",""],["7202","Beban Bunga Pinjaman","beban","D",""],["7203","Kerugian Penjualan Aset","beban","D",""],["7204","Kerugian Selisih Kurs","beban","D",""],["7205","Beban Denda Nonpajak","beban","D",""],["7206","Beban Administrasi Pinjaman","beban","D",""],["7207","Beban Nonoperasional Lainnya","beban","D",""],["7301","PPh 23 atas Pendapatan Bunga","pajak","D",""],["7302","PPh atas Pendapatan Dividen","pajak","D",""],["7303","PPh atas Pendapatan Sewa","pajak","D",""],["7304","PPh atas Pendapatan Royalti","pajak","D",""],["7305","PPh atas Pendapatan Jasa","pajak","D",""],["7306","PPh Final atas Pendapatan","beban","D",""],["7307","PPh 26 atas Pendapatan Luar Negeri","pajak","D",""],["7308","PPN Keluaran atas Transaksi Nonoperasional","pajak","K",""],["7309","PPN Masukan atas Beban Nonoperasional","pajak","D",""],["7310","Pajak atas Penjualan Aset","beban","D",""],["7311","Koreksi Pajak Nonoperasional","beban","D",""],["8000","Pajak Penghasilan","beban","D","i"],["8101","Beban PPh Badan Tahun Berjalan","beban","D",""],["8102","Beban PPh Badan Final","beban","D",""],["8103","Beban Pajak Tangguhan","beban","D",""],["8104","Manfaat Pajak Tangguhan","beban","K",""],["8105","Koreksi Pajak Tahun Sebelumnya","beban","D",""],["8106","Beban Pajak Penghasilan Lainnya","beban","D",""],["8110","PPh Badan Kurang Bayar","pajak","K",""],["8111","PPh Badan Lebih Bayar","pajak","D",""],["8112","PPh Badan Terutang","pajak","K",""],["8113","Kredit Pajak PPh 22","pajak","D",""],["8114","Kredit Pajak PPh 23","pajak","D",""],["8115","Kredit Pajak PPh 24","pajak","D",""],["8116","Kredit Pajak PPh 25","pajak","D",""],["8117","Kredit Pajak PPh 26","pajak","D",""],["8118","Kredit Pajak Lainnya","pajak","D",""],["8119","Angsuran PPh 25","pajak","D",""],["8120","PPh Pasal 29","pajak","K",""],["8121","PPh Pasal 28A","pajak","D",""],["8122","Pajak Tangguhan Aset","pajak","D",""],["8123","Pajak Tangguhan Liabilitas","pajak","K",""],["9000","Akun Kontrol Pajak","pajak","D","i"],["9001","PPN Masukan Belum Dilaporkan","pajak","D",""],["9002","PPN Keluaran Belum Dilaporkan","pajak","K",""],["9003","PPN Masukan Dalam Konfirmasi","pajak","D",""],["9004","PPN Keluaran Dalam Konfirmasi","pajak","K",""],["9005","Selisih PPN Pembukuan dan SPT","pajak","D",""],["9006","Selisih PPN Faktur dan General Ledger","pajak","D",""],["9007","PPN Lebih Bayar Masa Sebelumnya","pajak","D",""],["9008","PPN Kurang Bayar Masa Sebelumnya","pajak","K",""],["9009","PPN Dalam Proses Restitusi","pajak","D",""],["9010","PPh Dalam Proses Pemotongan","pajak","K",""],["9011","PPh Dalam Proses Penyetoran","pajak","K",""],["9012","Selisih PPh Pembukuan dan SPT","pajak","D",""],["9013","Pajak Dalam Proses Pemeriksaan","pajak","D",""],["9014","Pajak Dalam Proses Keberatan","pajak","D",""],["9015","Pajak Dalam Proses Banding","pajak","D",""],["9016","Koreksi Fiskal Positif","pajak","D",""],["9017","Koreksi Fiskal Negatif","pajak","K",""],["9018","Selisih Laba Komersial dan Fiskal","pajak","D",""],["9019","Rekonsiliasi Pajak Tahunan","pajak","D",""]];
-const KELAS_LBL={1:'Aset',2:'Kewajiban',3:'Ekuitas',4:'Pendapatan',5:'Harga Pokok dan Biaya Produksi',6:'Beban Operasional',7:'Pendapatan dan Beban Nonoperasional',8:'Pajak Penghasilan',9:'Akun Kontrol Pajak'};
+const DEF_COA=[
+["1100","Aset Lancar","lancar","D",0,1],
+["1101","Kas Besar","lancar","D",1],
+["1102","Kas Kecil","lancar","D",1],
+["1103","Kas Operasional","lancar","D",1],
+["1104","Bank BCA","lancar","D",1],
+["1105","Bank Mandiri","lancar","D",1],
+["1106","Bank BRI","lancar","D",1],
+["1107","Bank BNI","lancar","D",1],
+["1108","Deposito Jangka Pendek","lancar","D"],
+["1110","Piutang Usaha","piutang","D"],
+["1111","Piutang Dagang","piutang","D"],
+["1112","Piutang Karyawan","piutang","D"],
+["1113","Piutang Direksi","piutang","D"],
+["1114","Piutang Lain-lain","piutang","D"],
+["1115","Cadangan Kerugian Piutang","lancar","K"],
+["1120","Persediaan Barang Dagang","lancar","D"],
+["1121","Persediaan Bahan Baku","lancar","D"],
+["1122","Persediaan Barang Dalam Proses","lancar","D"],
+["1123","Persediaan Barang Jadi","lancar","D"],
+["1124","Persediaan Barang Pembantu","lancar","D"],
+["1125","Persediaan Suku Cadang","lancar","D"],
+["1126","Persediaan Barang dalam Perjalanan","lancar","D"],
+["1130","Uang Muka Pembelian","prepaid","D"],
+["1131","Uang Muka Supplier","prepaid","D"],
+["1132","Uang Muka Impor","prepaid","D"],
+["1133","Uang Muka Biaya","prepaid","D"],
+["1140","Perlengkapan Kantor","prepaid","D"],
+["1141","Perlengkapan Gudang","prepaid","D"],
+["1142","Perlengkapan Produksi","prepaid","D"],
+["1143","Perlengkapan Kebersihan","prepaid","D"],
+["1150","Biaya Dibayar di Muka","prepaid","D"],
+["1151","Sewa Dibayar di Muka","prepaid","D"],
+["1152","Asuransi Dibayar di Muka","prepaid","D"],
+["1153","Iklan Dibayar di Muka","prepaid","D"],
+["1154","Pemeliharaan Dibayar di Muka","prepaid","D"],
+["1160","Pajak Dibayar di Muka","pajak","D"],
+["1161","PPN Masukan (PPN IN)","pajak","D"],
+["1162","PPN Masukan Pembelian Barang","pajak","D"],
+["1163","PPN Masukan Pembelian Jasa","pajak","D"],
+["1164","PPN Masukan Pembelian Aset Tetap","pajak","D"],
+["1165","PPN Masukan Impor","pajak","D"],
+["1166","PPN Masukan Belum Dikreditkan","pajak","D"],
+["1167","PPN Masukan Tidak Dapat Dikreditkan","pajak","D"],
+["1168","PPh 21 Dibayar di Muka","pajak","D"],
+["1169","PPh 22 Dibayar di Muka","pajak","D"],
+["1170","PPh 23 Dibayar di Muka","pajak","D"],
+["1171","PPh 25 Angsuran Dibayar","pajak","D"],
+["1172","PPh 26 Dibayar di Muka","pajak","D"],
+["1173","PPh Final Dibayar di Muka","pajak","D"],
+["1174","PPh Badan Dibayar di Muka","pajak","D"],
+["1175","Pajak Luar Negeri Dibayar di Muka","pajak","D"],
+["1176","Lebih Bayar PPN","pajak","D"],
+["1177","Piutang Restitusi PPN","pajak","D"],
+["1178","Piutang Restitusi PPh","pajak","D"],
+["1179","Klaim Pengembalian Pajak","pajak","D"],
+["1180","Pajak Tangguhan Aset","pajak","D"],
+["1200","Aset Tetap","tetap","D",0,1],
+["1201","Tanah","tetap","D"],
+["1202","Bangunan","tetap","D"],
+["1203","Renovasi Bangunan","tetap","D"],
+["1204","Kendaraan Operasional","tetap","D"],
+["1205","Mesin Produksi","tetap","D"],
+["1206","Peralatan Produksi","tetap","D"],
+["1207","Peralatan Kantor","tetap","D"],
+["1208","Komputer dan Laptop","tetap","D"],
+["1209","Furniture dan Inventaris","tetap","D"],
+["1210","Peralatan Gudang","tetap","D"],
+["1211","Instalasi Listrik","tetap","D"],
+["1212","Instalasi Air","tetap","D"],
+["1213","Aset dalam Pembangunan","tetap","D"],
+["1214","Aset Hak Guna","tetap","D"],
+["1220","Akumulasi Penyusutan Bangunan","tetap","K"],
+["1221","Akumulasi Penyusutan Kendaraan","tetap","K"],
+["1222","Akumulasi Penyusutan Mesin","tetap","K"],
+["1223","Akumulasi Penyusutan Peralatan","tetap","K"],
+["1224","Akumulasi Penyusutan Komputer","tetap","K"],
+["1225","Akumulasi Penyusutan Furniture","tetap","K"],
+["1226","Akumulasi Penyusutan Aset Hak Guna","tetap","K"],
+["1230","Aset Tak Berwujud","tetap","D"],
+["1231","Software","tetap","D"],
+["1232","Lisensi","tetap","D"],
+["1233","Hak Paten","tetap","D"],
+["1234","Goodwill","tetap","D"],
+["1235","Akumulasi Amortisasi","tetap","K"],
+["1240","PPN Masukan Aset Tetap","pajak","D"],
+["1241","PPN Masukan Kendaraan","pajak","D"],
+["1242","PPN Masukan Mesin","pajak","D"],
+["1243","PPN Masukan Bangunan","pajak","D"],
+["1244","PPN Masukan Peralatan","pajak","D"],
+["1245","PPN Masukan Renovasi","pajak","D"],
+["1246","Pajak Pembelian Aset Belum Dikreditkan","pajak","D"],
+["1247","Pajak Tangguhan atas Aset","pajak","D"],
+["1248","Selisih Penyusutan Komersial dan Fiskal","pajak","D"],
+["2100","Kewajiban Jangka Pendek","hutang","K",0,1],
+["2101","Utang Usaha","hutang","K"],
+["2102","Utang Supplier","hutang","K"],
+["2103","Utang Pembelian","hutang","K"],
+["2104","Utang Ekspedisi","hutang","K"],
+["2105","Utang Gaji","hutang","K"],
+["2106","Utang THR","hutang","K"],
+["2107","Utang Bonus","hutang","K"],
+["2108","Utang Komisi","hutang","K"],
+["2109","Utang Bunga","hutang","K"],
+["2110","Utang Listrik","hutang","K"],
+["2111","Utang Air","hutang","K"],
+["2112","Utang Telepon","hutang","K"],
+["2113","Utang Internet","hutang","K"],
+["2114","Utang Sewa","hutang","K"],
+["2115","Utang Biaya Operasional","hutang","K"],
+["2116","Pendapatan Diterima di Muka","hutang","K"],
+["2117","Uang Muka Penjualan","hutang","K"],
+["2118","Utang Lain-lain","hutang","K"],
+["2120","PPN Keluaran (PPN OUT)","pajak","K"],
+["2121","PPN Keluaran Penjualan Barang","pajak","K"],
+["2122","PPN Keluaran Penjualan Jasa","pajak","K"],
+["2123","PPN Keluaran Penjualan Aset","pajak","K"],
+["2124","PPN Keluaran Uang Muka Penjualan","pajak","K"],
+["2125","PPN Keluaran Retur Penjualan","pajak","K"],
+["2126","PPN Keluaran Belum Dilunasi","pajak","K"],
+["2127","PPN Keluaran Transaksi Lainnya","pajak","K"],
+["2128","Utang PPN Masa Pajak","pajak","K"],
+["2129","Utang PPN Kurang Bayar","pajak","K"],
+["2130","PPN yang Harus Disetor","pajak","K"],
+["2131","PPN dalam Proses Rekonsiliasi","pajak","K"],
+["2140","Utang Pajak","pajak","K"],
+["2141","Utang PPh 21","pajak","K"],
+["2142","Utang PPh 22","pajak","K"],
+["2143","Utang PPh 23","pajak","K"],
+["2144","Utang PPh 26","pajak","K"],
+["2145","Utang PPh 4 Ayat 2","pajak","K"],
+["2146","Utang PPh Final","pajak","K"],
+["2147","Utang PPh atas Jasa","pajak","K"],
+["2148","Utang PPh atas Sewa","pajak","K"],
+["2149","Utang PPh atas Dividen","pajak","K"],
+["2150","Utang PPh atas Bunga","pajak","K"],
+["2151","Utang PPh atas Royalti","pajak","K"],
+["2152","Utang Pajak Daerah","pajak","K"],
+["2153","Utang Bea Meterai","pajak","K"],
+["2154","Utang Pajak Impor","pajak","K"],
+["2155","Utang PPN Impor","pajak","K"],
+["2156","Utang PPh 22 Impor","pajak","K"],
+["2157","Utang Pajak Lainnya","pajak","K"],
+["2200","Kewajiban Jangka Panjang","hutang","K",0,1],
+["2201","Utang Bank Jangka Panjang","hutang","K"],
+["2202","Utang Leasing","hutang","K"],
+["2203","Utang Pembiayaan Kendaraan","hutang","K"],
+["2204","Utang Pembiayaan Mesin","hutang","K"],
+["2205","Utang Obligasi","hutang","K"],
+["2206","Liabilitas Sewa Jangka Panjang","hutang","K"],
+["2207","Utang Jangka Panjang Lainnya","hutang","K"],
+["2210","Liabilitas Pajak Tangguhan","pajak","K"],
+["3000","Ekuitas","ekuitas","K",0,1],
+["3101","Modal Pemilik","ekuitas","K"],
+["3102","Modal Disetor","ekuitas","K"],
+["3103","Tambahan Modal Disetor","ekuitas","K"],
+["3104","Agio Saham","ekuitas","K"],
+["3105","Prive Pemilik","ekuitas","D"],
+["3106","Saldo Laba","ekuitas","K"],
+["3107","Laba Tahun Berjalan","ekuitas","K"],
+["3108","Rugi Tahun Berjalan","ekuitas","D"],
+["3109","Dividen","ekuitas","D"],
+["3110","Cadangan Umum","ekuitas","K"],
+["3111","Koreksi Saldo Laba","ekuitas","K"],
+["3112","Selisih Revaluasi Aset","ekuitas","K"],
+["3120","Pajak atas Dividen","ekuitas","D"],
+["3121","Utang PPh Dividen","pajak","K"],
+["3122","Pajak Tangguhan atas Revaluasi","pajak","K"],
+["3123","Koreksi Pajak Periode Sebelumnya","ekuitas","D"],
+["3124","Dampak Pajak atas Koreksi Ekuitas","ekuitas","D"],
+["4100","Pendapatan Usaha","pendapatan","K",0,1],
+["4101","Penjualan Barang Dagang","pendapatan","K"],
+["4102","Penjualan Tunai","pendapatan","K"],
+["4103","Penjualan Kredit","pendapatan","K"],
+["4104","Penjualan Produk","pendapatan","K"],
+["4105","Penjualan Bahan Baku","pendapatan","K"],
+["4106","Penjualan Barang Jadi","pendapatan","K"],
+["4107","Pendapatan Jasa","pendapatan","K"],
+["4108","Pendapatan Instalasi","pendapatan","K"],
+["4109","Pendapatan Maintenance","pendapatan","K"],
+["4110","Pendapatan Proyek","pendapatan","K"],
+["4111","Pendapatan Kontrak","pendapatan","K"],
+["4112","Pendapatan Sewa","pendapatan","K"],
+["4113","Pendapatan Komisi","pendapatan","K"],
+["4114","Pendapatan Pengiriman","pendapatan","K"],
+["4115","Pendapatan Konsultasi","pendapatan","K"],
+["4116","Pendapatan Royalti","pendapatan","K"],
+["4117","Pendapatan Ekspor","pendapatan","K"],
+["4118","Pendapatan Lain-lain","pendapatan","K"],
+["4200","Pengurang Pendapatan","pendapatan","D",0,1],
+["4201","Retur Penjualan","pendapatan","D"],
+["4202","Potongan Penjualan","pendapatan","D"],
+["4203","Diskon Penjualan","pendapatan","D"],
+["4204","Pembatalan Penjualan","pendapatan","D"],
+["4205","Koreksi Penjualan","pendapatan","D"],
+["4206","Pengembalian Barang","pendapatan","D"],
+["4300","Akun Pajak Penjualan","pajak","K",0,1],
+["4301","PPN Keluaran Penjualan Barang","pajak","K"],
+["4302","PPN Keluaran Penjualan Jasa","pajak","K"],
+["4303","PPN Keluaran Penjualan Proyek","pajak","K"],
+["4304","PPN Keluaran Penjualan Aset","pajak","K"],
+["4305","PPN Keluaran Uang Muka","pajak","K"],
+["4306","Koreksi PPN Keluaran","pajak","D"],
+["4307","PPN atas Retur Penjualan","pajak","D"],
+["4308","PPN atas Pembatalan Transaksi","pajak","D"],
+["4309","Pajak Penjualan Ekspor","pajak","K"],
+["4310","Pendapatan DPP PPN","pendapatan","K"],
+["4311","Pendapatan Non-PPN","pendapatan","K"],
+["4312","Pendapatan Dibebaskan PPN","pendapatan","K"],
+["4313","Pendapatan PPN Tidak Dipungut","pendapatan","K"],
+["5100","Harga Pokok Penjualan","beban","D",0,1],
+["5101","Persediaan Awal","beban","D"],
+["5102","Pembelian Barang Dagang","beban","D"],
+["5103","Pembelian Bahan Baku","beban","D"],
+["5104","Pembelian Barang Jadi","beban","D"],
+["5105","Pembelian Barang Pembantu","beban","D"],
+["5106","Pembelian Suku Cadang","beban","D"],
+["5107","Biaya Angkut Pembelian","beban","D"],
+["5108","Biaya Bongkar Muat","beban","D"],
+["5109","Biaya Impor","beban","D"],
+["5110","Biaya Bea Masuk","beban","D"],
+["5111","Biaya Gudang Pembelian","beban","D"],
+["5112","Retur Pembelian","beban","K"],
+["5113","Potongan Pembelian","beban","K"],
+["5114","Persediaan Akhir","beban","K"],
+["5115","Harga Pokok Penjualan","beban","D"],
+["5200","Biaya Produksi","beban","D",0,1],
+["5201","Bahan Baku Terpakai","beban","D"],
+["5202","Tenaga Kerja Langsung","beban","D"],
+["5203","Biaya Overhead Pabrik","beban","D"],
+["5204","Biaya Listrik Produksi","beban","D"],
+["5205","Biaya Air Produksi","beban","D"],
+["5206","Biaya Gas Produksi","beban","D"],
+["5207","Biaya Penyusutan Mesin","beban","D"],
+["5208","Biaya Pemeliharaan Mesin","beban","D"],
+["5209","Biaya Kemasan","beban","D"],
+["5210","Biaya Pengawasan Produksi","beban","D"],
+["5211","Biaya Kualitas Produksi","beban","D"],
+["5212","Biaya Tenaga Kerja Tidak Langsung","beban","D"],
+["5213","Biaya Pabrik Lainnya","beban","D"],
+["5300","Pajak Pembelian dan Produksi","pajak","D",0,1],
+["5301","PPN Masukan Pembelian Barang","pajak","D"],
+["5302","PPN Masukan Pembelian Bahan Baku","pajak","D"],
+["5303","PPN Masukan Pembelian Jasa","pajak","D"],
+["5304","PPN Masukan Biaya Angkut","pajak","D"],
+["5305","PPN Masukan Impor","pajak","D"],
+["5306","PPN Masukan Pembelian Kemasan","pajak","D"],
+["5307","PPN Masukan Overhead Pabrik","pajak","D"],
+["5308","PPN Masukan Tidak Dapat Dikreditkan","beban","D"],
+["5309","PPN Masukan Belum Dikreditkan","pajak","D"],
+["5310","PPh 22 Impor Dibayar di Muka","pajak","D"],
+["5311","PPh 23 Dipotong Supplier","pajak","K"],
+["5312","PPh 4 Ayat 2 Dipotong Supplier","pajak","K"],
+["5313","Bea Masuk","beban","D"],
+["5314","Pajak dan Retribusi Produksi","beban","D"],
+["5315","Koreksi Pajak Pembelian","beban","D"],
+["6100","Beban Karyawan","beban","D",0,1],
+["6101","Beban Gaji","beban","D"],
+["6102","Beban Upah","beban","D"],
+["6103","Beban THR","beban","D"],
+["6104","Beban Bonus","beban","D"],
+["6105","Beban Tunjangan","beban","D"],
+["6106","Beban Lembur","beban","D"],
+["6107","Beban BPJS Kesehatan","beban","D"],
+["6108","Beban BPJS Ketenagakerjaan","beban","D"],
+["6109","Beban Pesangon","beban","D"],
+["6110","Beban Rekrutmen","beban","D"],
+["6111","Beban Pelatihan Karyawan","beban","D"],
+["6112","Beban Kesejahteraan Karyawan","beban","D"],
+["6113","Beban Makan Karyawan","beban","D"],
+["6114","Beban Transportasi Karyawan","beban","D"],
+["6200","Beban Administrasi","beban","D",0,1],
+["6201","Beban ATK","beban","D"],
+["6202","Beban Fotokopi","beban","D"],
+["6203","Beban Percetakan","beban","D"],
+["6204","Beban Listrik Kantor","beban","D"],
+["6205","Beban Air Kantor","beban","D"],
+["6206","Beban Telepon","beban","D"],
+["6207","Beban Internet","beban","D"],
+["6208","Beban Sewa Kantor","beban","D"],
+["6209","Beban Kebersihan","beban","D"],
+["6210","Beban Keamanan","beban","D"],
+["6211","Beban Konsumsi","beban","D"],
+["6212","Beban Perlengkapan","beban","D"],
+["6213","Beban Perawatan Gedung","beban","D"],
+["6214","Beban Perawatan Peralatan","beban","D"],
+["6215","Beban Administrasi Bank","beban","D"],
+["6216","Beban Jasa Profesional","beban","D"],
+["6217","Beban Audit","beban","D"],
+["6218","Beban Konsultan","beban","D"],
+["6219","Beban Legalitas","beban","D"],
+["6220","Beban Notaris","beban","D"],
+["6221","Beban Perjalanan Dinas","beban","D"],
+["6222","Beban Transportasi","beban","D"],
+["6223","Beban Bensin","beban","D"],
+["6224","Beban Parkir dan Tol","beban","D"],
+["6225","Beban Pengiriman Dokumen","beban","D"],
+["6226","Beban Langganan Software","beban","D"],
+["6227","Beban Penyusutan","beban","D"],
+["6228","Beban Amortisasi","beban","D"],
+["6229","Beban Asuransi","beban","D"],
+["6230","Beban Operasional Lainnya","beban","D"],
+["6300","Beban Pemasaran","beban","D",0,1],
+["6301","Beban Iklan","beban","D"],
+["6302","Beban Promosi","beban","D"],
+["6303","Beban Digital Marketing","beban","D"],
+["6304","Beban Marketplace","beban","D"],
+["6305","Beban Komisi Penjualan","beban","D"],
+["6306","Beban Entertainment","beban","D"],
+["6307","Beban Representasi","beban","D"],
+["6308","Beban Pameran","beban","D"],
+["6309","Beban Sponsorship","beban","D"],
+["6310","Beban Diskon Promosi","beban","D"],
+["6311","Beban Pengiriman Penjualan","beban","D"],
+["6312","Beban Marketing Lainnya","beban","D"],
+["6400","Beban Pajak Operasional","beban","D",0,1],
+["6401","Beban PPN Tidak Dapat Dikreditkan","beban","D"],
+["6402","Beban PPh Final","beban","D"],
+["6403","Beban PBB","beban","D"],
+["6404","Beban Pajak Kendaraan","beban","D"],
+["6405","Beban Bea Meterai","beban","D"],
+["6406","Beban Pajak Reklame","beban","D"],
+["6407","Beban Pajak Daerah","beban","D"],
+["6408","Beban Retribusi Daerah","beban","D"],
+["6409","Beban Pajak dan Retribusi Lainnya","beban","D"],
+["6410","Beban Denda Pajak","beban","D"],
+["6411","Beban Bunga Pajak","beban","D"],
+["6412","Beban Sanksi Administrasi Pajak","beban","D"],
+["6500","PPN Masukan Beban Operasional","pajak","D",0,1],
+["6501","PPN Masukan Listrik","pajak","D"],
+["6502","PPN Masukan Internet","pajak","D"],
+["6503","PPN Masukan Telepon","pajak","D"],
+["6504","PPN Masukan Sewa","pajak","D"],
+["6505","PPN Masukan Jasa Konsultan","pajak","D"],
+["6506","PPN Masukan Jasa Profesional","pajak","D"],
+["6507","PPN Masukan Transportasi","pajak","D"],
+["6508","PPN Masukan Perawatan","pajak","D"],
+["6509","PPN Masukan Iklan","pajak","D"],
+["6510","PPN Masukan Promosi","pajak","D"],
+["6511","PPN Masukan Jasa Pengiriman","pajak","D"],
+["6512","PPN Masukan Perlengkapan Kantor","pajak","D"],
+["6513","PPN Masukan Biaya Lainnya","pajak","D"],
+["6514","PPN Masukan Tidak Dapat Dikreditkan","beban","D"],
+["6600","PPh atas Biaya Operasional","pajak","K",0,1],
+["6601","PPh 21 atas Tenaga Kerja","pajak","K"],
+["6602","PPh 23 atas Jasa","pajak","K"],
+["6603","PPh 23 atas Sewa Harta Selain Tanah/Bangunan","pajak","K"],
+["6604","PPh 4 Ayat 2 atas Sewa Tanah/Bangunan","pajak","K"],
+["6605","PPh 23 atas Royalti","pajak","K"],
+["6606","PPh 23 atas Bunga","pajak","K"],
+["6607","PPh 26 atas Pembayaran ke Luar Negeri","pajak","K"],
+["6608","PPh atas Jasa Profesional","pajak","K"],
+["6609","PPh atas Jasa Konsultan","pajak","K"],
+["6610","PPh atas Jasa Konstruksi","pajak","K"],
+["6611","PPh atas Jasa Lainnya","pajak","K"],
+["7100","Pendapatan Nonoperasional","pendapatan","K",0,1],
+["7101","Pendapatan Bunga Bank","pendapatan","K"],
+["7102","Pendapatan Deposito","pendapatan","K"],
+["7103","Pendapatan Dividen","pendapatan","K"],
+["7104","Pendapatan Selisih Kurs","pendapatan","K"],
+["7105","Keuntungan Penjualan Aset","pendapatan","K"],
+["7106","Pendapatan Kompensasi","pendapatan","K"],
+["7107","Pendapatan Lain-lain","pendapatan","K"],
+["7200","Beban Nonoperasional","beban","D",0,1],
+["7201","Beban Bunga Bank","beban","D"],
+["7202","Beban Bunga Pinjaman","beban","D"],
+["7203","Kerugian Penjualan Aset","beban","D"],
+["7204","Kerugian Selisih Kurs","beban","D"],
+["7205","Beban Denda Nonpajak","beban","D"],
+["7206","Beban Administrasi Pinjaman","beban","D"],
+["7207","Beban Nonoperasional Lainnya","beban","D"],
+["7301","PPh 23 atas Pendapatan Bunga","pajak","D"],
+["7302","PPh atas Pendapatan Dividen","pajak","D"],
+["7303","PPh atas Pendapatan Sewa","pajak","D"],
+["7304","PPh atas Pendapatan Royalti","pajak","D"],
+["7305","PPh atas Pendapatan Jasa","pajak","D"],
+["7306","PPh Final atas Pendapatan","beban","D"],
+["7307","PPh 26 atas Pendapatan Luar Negeri","pajak","D"],
+["7308","PPN Keluaran atas Transaksi Nonoperasional","pajak","K"],
+["7309","PPN Masukan atas Beban Nonoperasional","pajak","D"],
+["7310","Pajak atas Penjualan Aset","pajak","D"],
+["7311","Koreksi Pajak Nonoperasional","pajak","D"],
+["8000","Pajak Penghasilan","beban","D",0,1],
+["8101","Beban PPh Badan Tahun Berjalan","beban","D"],
+["8102","Beban PPh Badan Final","beban","D"],
+["8103","Beban Pajak Tangguhan","beban","D"],
+["8104","Manfaat Pajak Tangguhan","beban","K"],
+["8105","Koreksi Pajak Tahun Sebelumnya","beban","D"],
+["8106","Beban Pajak Penghasilan Lainnya","beban","D"],
+["8110","PPh Badan Kurang Bayar","pajak","K"],
+["8111","PPh Badan Lebih Bayar","pajak","D"],
+["8112","PPh Badan Terutang","pajak","K"],
+["8113","Kredit Pajak PPh 22","pajak","D"],
+["8114","Kredit Pajak PPh 23","pajak","D"],
+["8115","Kredit Pajak PPh 24","pajak","D"],
+["8116","Kredit Pajak PPh 25","pajak","D"],
+["8117","Kredit Pajak PPh 26","pajak","D"],
+["8118","Kredit Pajak Lainnya","pajak","D"],
+["8119","Angsuran PPh 25","pajak","D"],
+["8120","PPh Pasal 29","pajak","K"],
+["8121","PPh Pasal 28A","pajak","D"],
+["8122","Pajak Tangguhan Aset","pajak","D"],
+["8123","Pajak Tangguhan Liabilitas","pajak","K"],
+["9000","Akun Kontrol Pajak","pajak","D",0,1],
+["9001","PPN Masukan Belum Dilaporkan","pajak","D"],
+["9002","PPN Keluaran Belum Dilaporkan","pajak","K"],
+["9003","PPN Masukan Dalam Konfirmasi","pajak","D"],
+["9004","PPN Keluaran Dalam Konfirmasi","pajak","K"],
+["9005","Selisih PPN Pembukuan dan SPT","pajak","D"],
+["9006","Selisih PPN Faktur dan General Ledger","pajak","D"],
+["9007","PPN Lebih Bayar Masa Sebelumnya","pajak","D"],
+["9008","PPN Kurang Bayar Masa Sebelumnya","pajak","K"],
+["9009","PPN Dalam Proses Restitusi","pajak","D"],
+["9010","PPh Dalam Proses Pemotongan","pajak","K"],
+["9011","PPh Dalam Proses Penyetoran","pajak","K"],
+["9012","Selisih PPh Pembukuan dan SPT","pajak","D"],
+["9013","Pajak Dalam Proses Pemeriksaan","pajak","D"],
+["9014","Pajak Dalam Proses Keberatan","pajak","D"],
+["9015","Pajak Dalam Proses Banding","pajak","D"],
+["9016","Koreksi Fiskal Positif","pajak","D"],
+["9017","Koreksi Fiskal Negatif","pajak","D"],
+["9018","Selisih Laba Komersial dan Fiskal","pajak","D"],
+["9019","Rekonsiliasi Pajak Tahunan","pajak","D"]];
 const DEF_MAP={kas:'1101',piutang:'1110',persediaan:'1120',hutang:'2101',penjualan:'4101',hpp:'5115',ppnK:'2120',ppnM:'1161',beban:'6230',susut:'6227'};
+const OLD_MAP={kas:'1100',piutang:'1300',persediaan:'1400',hutang:'2100',penjualan:'4100',hpp:'5100',ppnK:'2510',ppnM:'1710',beban:'5900',susut:'5500'};
 const MAP_LBL={kas:'Kas (transaksi tunai)',piutang:'Piutang usaha (penjualan kredit)',persediaan:'Persediaan barang',hutang:'Hutang usaha (pembelian kredit)',penjualan:'Pendapatan penjualan',hpp:'Harga pokok penjualan',ppnK:'PPN keluaran',ppnM:'PPN masukan',beban:'Beban penyesuaian stok',susut:'Beban penyusutan (bawaan aset)'};
-const mkAk=r=>{const a={kode:r[0],nama:r[1],tipe:r[2],normal:r[3],kas:r[4].includes('k')};if(r[4].includes('i'))a.induk=true;return a};
-const mkCoa=()=>DEF_ROWS.map(mkAk);
+const coaRow=r=>({kode:r[0],nama:r[1],tipe:r[2],normal:r[3],kas:!!r[4],induk:!!r[5]});
+const mkCoa=()=>DEF_COA.map(coaRow);
+/* kelompok kode 1-9 dan seksi sesuai berkas COA Lengkap */
+const GM='\u0001g';
+const KELAS={'1':'Kelas 1 - Aset','2':'Kelas 2 - Kewajiban','3':'Kelas 3 - Ekuitas / Modal','4':'Kelas 4 - Pendapatan','5':'Kelas 5 - HPP dan Biaya Produksi','6':'Kelas 6 - Beban Operasional','7':'Kelas 7 - Pendapatan dan Beban Nonoperasional','8':'Kelas 8 - Pajak Penghasilan Badan','9':'Kelas 9 - Akun Kontrol dan Rekonsiliasi Pajak'};
+const SEKSI=[[1100,1154,'Aset Lancar'],[1160,1180,'Akun Pajak dalam Aset Lancar'],[1200,1235,'Aset Tetap'],[1240,1248,'Akun Pajak Terkait Aset Tetap'],[2100,2118,'Kewajiban Jangka Pendek'],[2120,2131,'PPN Keluaran (PPN OUT)'],[2140,2157,'Utang Pemotongan dan Pemungutan Pajak'],[2200,2210,'Kewajiban Jangka Panjang'],[3000,3112,'Ekuitas / Modal'],[3120,3124,'Akun Pajak Terkait Ekuitas'],[4100,4118,'Pendapatan Usaha'],[4200,4206,'Pengurang Pendapatan'],[4300,4313,'Akun Pajak yang Berhubungan dengan Pendapatan'],[5100,5115,'HPP dan Pembelian'],[5200,5213,'Biaya Produksi'],[5300,5315,'Pajak Pembelian dan Produksi'],[6100,6114,'Beban Karyawan'],[6200,6230,'Beban Kantor dan Administrasi'],[6300,6312,'Beban Pemasaran'],[6400,6412,'Beban Pajak Operasional'],[6500,6514,'PPN Masukan atas Biaya Operasional'],[6600,6611,'PPh atas Biaya Operasional'],[7100,7207,'Pendapatan dan Beban Nonoperasional'],[7301,7311,'Pajak Terkait Nonoperasional'],[8000,8123,'Pajak Penghasilan Badan'],[9000,9019,'Akun Kontrol dan Rekonsiliasi Pajak']];
+const kelasOf=k=>KELAS[String(k||'')[0]]||'Lainnya';
+const seksiOf=k=>{const s=String(k||'');if(/^\d+$/.test(s)){const n=parseInt(s,10),r=SEKSI.find(z=>n>=z[0]&&n<=z[1]);if(r)return r[2]}return 'Akun tambahan'};
+function grp(list,fmt){const out=[];let last='';list.forEach(a=>{const g=kelasOf(a.kode);if(g!==last){out.push([GM,g]);last=g}out.push(fmt(a))});return out}
+/* saran pasangan akun akumulasi dan beban untuk aktiva tetap */
+const ASET_SUG={'1202':['1220','6227'],'1203':['1220','6227'],'1204':['1221','6227'],'1205':['1222','5207'],'1206':['1223','5207'],'1207':['1223','6227'],'1208':['1224','6227'],'1209':['1225','6227'],'1210':['1223','6227'],'1211':['1220','6227'],'1212':['1220','6227'],'1214':['1226','6227'],'1231':['1235','6228'],'1232':['1235','6228'],'1233':['1235','6228']};
 
 /* ---------- util ---------- */
 const $=s=>document.querySelector(s);
@@ -189,11 +619,10 @@ function migrate(s){
       if(a.tipe==='aset')a.tipe=a.kas?'lancar':a.kode==='1300'?'piutang':a.kode==='1500'?'prepaid':/^16/.test(a.kode)?'tetap':'lancar';
       else if(a.tipe==='liabilitas')a.tipe='hutang';
     });
-    c.map=Object.assign({},DEF_MAP,c.map||{});
+    c.map=Object.assign({},c.map?DEF_MAP:OLD_MAP,c.map||{});
     ['penjualan','pembelian','barang','stok','aset'].forEach(k=>{c[k]=c[k]||[]});
     c.jurnal.forEach(l=>{l.src=l.src||'manual';l.mitra=l.mitra||'';l.memo=l.memo||''});
-    Object.values(c.map).forEach(kode=>{if(!c.coa.some(a=>a.kode===kode)){const d=DEF_ROWS.find(x=>x[0]===kode);if(d)c.coa.push(mkAk(d))}});
-    if(!s.ver||parseFloat(s.ver)<2.1)DEF_ROWS.forEach(r=>{if(!c.coa.some(a=>a.kode===r[0]))c.coa.push(mkAk(r))});
+    Object.values(c.map).forEach(kode=>{if(!c.coa.some(a=>a.kode===kode)){const d=DEF_COA.find(x=>x[0]===kode);if(d)c.coa.push(coaRow(d))}});
     rebuild(c);
   });
   s.ver=VER;return s;
@@ -392,7 +821,7 @@ function sample(){
   c.pembelian.push({id:uid(),no:'PB-001',tgl:d(3),mitra:'CV Sumber Kain',ket:'',ppn:11,bayar:'kredit',akunKas:'',items:[{sel:'b:brg1',uraian:'Kemeja Polos',qty:50,harga:100000}],lamp:[]});
   c.penjualan.push({id:uid(),no:'PJ-001',tgl:d(5),mitra:'Toko Andini',ket:'',ppn:11,bayar:'kredit',akunKas:'',items:[{sel:'b:brg1',uraian:'Kemeja Polos',qty:30,harga:180000}],lamp:[]},
     {id:uid(),no:'PJ-002',tgl:d(6),mitra:'Budi',ket:'',ppn:0,bayar:'tunai',akunKas:'1101',items:[{sel:'b:brg1',uraian:'Kemeja Polos',qty:10,harga:180000}],lamp:[]});
-  c.aset.push({id:uid(),kode:'AT-01',nama:'Mesin Jahit',tgl:a10.y+'-'+pad(a10.m)+'-01',harga:12000000,residu:0,umur:60,sudah:10,akun:'1205',akum:'1222',beban:'6227',perolehan:'none',mitra:'',lamp:[]});
+  c.aset.push({id:uid(),kode:'AT-01',nama:'Mesin Jahit',tgl:a10.y+'-'+pad(a10.m)+'-01',harga:12000000,residu:0,umur:60,sudah:10,akun:'1205',akum:'1222',beban:'5207',perolehan:'none',mitra:'',lamp:[]});
   rebuild(c);return c;
 }
 /* ===== lampiran, kata sandi, impor Excel ===== */
@@ -458,6 +887,7 @@ function analisisImpor(c,wb,only){
   const err=[],info=[],ops=[],want=k=>!only||only.includes(k);
   const E=(sh,r,m)=>{err.push(sh+(r?' baris '+r:'')+': '+m)};
   const coa=new Map(c.coa.map(a=>[a.kode,Object.assign({},a)])),bmap=new Map(c.barang.map(b=>[b.kode,b.id]));
+  const has=k=>{const a=coa.get(k);return !!a&&!a.induk};
   const used=new Set(c.jurnal.map(l=>l.no)),akodeUsed=new Set(c.aset.map(a=>a.kode));
   const rd=(k,names,spec,label)=>{
     if(!want(k))return null;
@@ -468,13 +898,13 @@ function analisisImpor(c,wb,only){
     if(r.miss.length){E(label,0,'kolom '+r.miss.join(', ')+' tidak ditemukan. Unduh template supaya formatnya pas.');return null}
     return r.items;
   };
-  let it=rd('akun',['akun','coa','daftarakun'],[['kode',['kode','kodeakun'],1],['nama',['namaakun','nama'],1],['tipe',['tipe','jenis','kelompok'],1],['normal',['saldonormal','normal'],0],['kas',['kas','akunkas'],0]],'Sheet Akun');
+  let it=rd('akun',['akun','coa','daftarakun'],[['kode',['kode','kodeakun'],1],['nama',['namaakun','nama'],1],['tipe',['tipe','jenis','kelompok'],1],['normal',['saldonormal','normal'],0],['kas',['kas','akunkas'],0],['induk',['induk','akuninduk'],0]],'Sheet Akun');
   if(it){let n=0;it.forEach(r=>{
     const kode=String(r.kode).trim(),nama=String(r.nama).trim(),tipe=TIPE_ALIAS[hnorm(r.tipe)];
     if(!kode||!nama)return E('Sheet Akun',r._r,'kode atau nama kosong.');
     if(!tipe)return E('Sheet Akun',r._r,'tipe "'+r.tipe+'" tidak dikenal. Pakai: '+TIPE.map(t=>TIPE_LBL[t]).join(', ')+'.');
     let nr=hnorm(r.normal);nr=nr.startsWith('d')?'D':nr.startsWith('k')?'K':normalOf(tipe);
-    coa.set(kode,{kode,nama,tipe,normal:nr,kas:['ya','y','1','true','kas'].includes(String(r.kas).trim().toLowerCase())});n++;
+    const iv=String(r.induk).trim().toLowerCase();coa.set(kode,{kode,nama,tipe,normal:nr,kas:['ya','y','1','true','kas'].includes(String(r.kas).trim().toLowerCase()),induk:iv===''?!!(coa.get(kode)||{}).induk:['ya','y','1','true','induk'].includes(iv)});n++;
   });ops.push(()=>{c.coa=[...coa.values()]});info.push(n+' akun diproses')}
 
   it=rd('barang',['barang','masterbarang'],[['kode',['kode','kodebarang'],1],['nama',['nama','namabarang'],1],['satuan',['satuan'],0]],'Sheet Barang');
@@ -491,7 +921,7 @@ function analisisImpor(c,wb,only){
       const e=m=>{E('Sheet Jurnal',r._r,m);x=true};
       if(!validDate(tgl))e('tanggal "'+r.tgl+'" tidak valid (pakai 2026-11-14 atau 14/11/2026).');
       if(!no)e('nomor bukti kosong.');else if(used.has(no)){if(!bad.has(no)){bad.add(no);e('nomor bukti '+no+' sudah ada (mungkin sudah pernah diimpor).')}else x=true}
-      if(!coa.has(akun))e('kode akun "'+akun+'" tidak ada di daftar akun.');
+      if(!has(akun))e('kode akun "'+akun+'" tidak ada di daftar akun atau berupa akun induk.');
       if(isNaN(d)||isNaN(k)||d<0||k<0)e('debit/kredit harus angka positif.');
       else if(d>0&&k>0)e('debit dan kredit tidak boleh terisi bersamaan.');
       else if(d===0&&k===0)e('debit dan kredit sama-sama kosong.');
@@ -510,7 +940,7 @@ function analisisImpor(c,wb,only){
     it.forEach(r=>{
       const t=parseTgl(r.tgl),akun=String(r.akun).trim(),d=num(r.d===''?0:r.d),k=num(r.k===''?0:r.k);
       if(!tgl){if(!validDate(t))return E('Sheet Saldo Awal',r._r,'tanggal saldo awal tidak valid.');tgl=t}
-      if(!coa.has(akun))return E('Sheet Saldo Awal',r._r,'kode akun "'+akun+'" tidak ada di daftar akun.');
+      if(!has(akun))return E('Sheet Saldo Awal',r._r,'kode akun "'+akun+'" tidak ada di daftar akun atau berupa akun induk.');
       if(isNaN(d)||isNaN(k)||d<0||k<0||(d>0&&k>0))return E('Sheet Saldo Awal',r._r,'isi debit atau kredit saja, dengan angka positif.');
       if(!d&&!k)return;sd+=d;sk+=k;
       rows.push({id:uid(),no:'SALDO-AWAL',tgl,ket:'Saldo awal',memo:'',akun,d,k,mitra:String(r.mitra||'').trim(),src:'saldo'});
@@ -530,11 +960,11 @@ function analisisImpor(c,wb,only){
       if(!o){
         const tgl=parseTgl(r.tgl),kas=String(r.kas||'').trim(),ppn=num(r.ppn===''?0:r.ppn);
         if(!validDate(tgl))return E(label,r._r,'tanggal "'+r.tgl+'" tidak valid.');
-        if(kas&&!coa.has(kas))return E(label,r._r,'kode akun kas "'+kas+'" tidak ada.');
+        if(kas&&!has(kas))return E(label,r._r,'kode akun kas "'+kas+'" tidak ada atau berupa akun induk.');
         if(isNaN(ppn)||ppn<0)return E(label,r._r,'PPN harus angka persen, misalnya 11.');
         o={id:uid(),no,tgl,mitra:String(r.mitra||'').trim(),ket:String(r.ket||'').trim(),ppn,bayar:hnorm(r.bayar).startsWith('t')?'tunai':'kredit',akunKas:kas,items:[],lamp:[],_r:r._r};g.set(no,o);
       }
-      const kode=String(r.kode).trim(),qty=num(r.qty),harga=num(r.harga),sel=bmap.has(kode)?'b:'+bmap.get(kode):coa.has(kode)?'a:'+kode:'';
+      const kode=String(r.kode).trim(),qty=num(r.qty),harga=num(r.harga),sel=bmap.has(kode)?'b:'+bmap.get(kode):has(kode)?'a:'+kode:'';
       if(!sel)return E(label,r._r,'kode "'+kode+'" bukan kode barang maupun kode akun.');
       if(isNaN(qty)||qty<=0||isNaN(harga)||harga<0)return E(label,r._r,'qty harus lebih dari 0 dan harga tidak boleh negatif.');
       o.items.push({sel,uraian:String(r.uraian||'').trim(),qty,harga});
@@ -572,7 +1002,7 @@ function analisisImpor(c,wb,only){
     if(isNaN(residu)||residu<0||residu>=harga)e('nilai residu harus kurang dari harga perolehan.');
     if(isNaN(umur)||umur<1||umur!==Math.floor(umur))e('umur (bulan) harus bilangan bulat positif.');
     if(isNaN(sudah)||sudah<0||sudah>=umur)e('bulan sudah disusutkan harus antara 0 dan umur.');
-    [ak,am,bb].forEach(z=>{if(!coa.has(z))e('kode akun "'+z+'" tidak ada di daftar akun.')});
+    [ak,am,bb].forEach(z=>{if(!has(z))e('kode akun "'+z+'" tidak ada di daftar akun atau berupa akun induk.')});
     const per=pr.startsWith('k')?'kas':(pr.startsWith('h')||pr.startsWith('u'))?'hutang':'none',mi=String(r.mitra||'').trim();
     if(per==='hutang'&&!mi)e('nama pemasok wajib untuk perolehan secara hutang.');
     if(x)return;akodeUsed.add(kode);
@@ -590,7 +1020,7 @@ function buildSheets(c,f,t){
   const nm=k=>{const a=c.coa.find(x=>x.kode===k);return a?a.nama:''};
   const selKode=s=>s&&s.slice(0,2)==='b:'?((c.barang.find(b=>b.id===s.slice(2))||{}).kode||''):(s||'').slice(2);
   const put=(n,aoa,money)=>{o[n]={aoa,money:money||[]}};
-  put('Akun',[['Kode','Nama Akun','Tipe','Saldo Normal','Kas']].concat(c.coa.slice().sort(byKode).map(a=>[a.kode,a.nama,TIPE_LBL[a.tipe],a.normal==='D'?'Debit':'Kredit',a.kas?'Ya':''])));
+  put('Akun',[['Kode','Nama Akun','Tipe','Saldo Normal','Kas','Induk']].concat(c.coa.slice().sort(byKode).map(a=>[a.kode,a.nama,TIPE_LBL[a.tipe],a.normal==='D'?'Debit':'Kredit',a.kas?'Ya':'',a.induk?'Ya':''])));
   put('Jurnal',[['Tanggal','No Bukti','Keterangan','Kode Akun','Debit','Kredit','Keterangan Baris','Mitra']].concat(c.jurnal.filter(l=>l.src==='manual').sort(cmpL).map(l=>[l.tgl,l.no,l.ket,l.akun,l.d,l.k,l.memo||'',l.mitra||''])),[4,5]);
   put('Saldo Awal',[['Tanggal','Kode Akun','Debit','Kredit','Mitra']].concat(c.jurnal.filter(l=>l.src==='saldo').map(l=>[l.tgl,l.akun,l.d,l.k,l.mitra||''])),[2,3]);
   const trx=(arr,ml)=>[['Tanggal','No Faktur',ml,'Keterangan','Kode Barang/Akun','Uraian','Qty','Harga','PPN','Cara Bayar','Kode Akun Kas']].concat(...arr.slice().sort(cmpL).map(p=>p.items.map(i=>[p.tgl,p.no,p.mitra||'',p.ket||'',selKode(i.sel),i.uraian||'',i.qty,i.harga,p.ppn||0,p.bayar==='tunai'?'Tunai':'Kredit',p.akunKas||''])));
@@ -645,18 +1075,18 @@ function unduhTemplate(names){
   if(noXlsx())return;
   const c=C(),all=buildSheets(c,'',''),wb=XLSX.utils.book_new(),d=today();
   const ex={
-    'Jurnal':[['Tanggal','No Bukti','Keterangan','Kode Akun','Debit','Kredit','Keterangan Baris','Mitra'],[d,'JU-101','Contoh: terima pelunasan piutang','1101',500000,0,'',''],[d,'JU-101','Contoh: terima pelunasan piutang','1110',0,500000,'Pelunasan','Toko Andini']],
-    'Saldo Awal':[['Tanggal','Kode Akun','Debit','Kredit','Mitra'],[d,'1101',1000000,0,''],[d,'3101',0,1000000,'']],
+    'Jurnal':[['Tanggal','No Bukti','Keterangan','Kode Akun','Debit','Kredit','Keterangan Baris','Mitra'],[d,'JU-101','Contoh: terima pelunasan piutang','1100',500000,0,'',''],[d,'JU-101','Contoh: terima pelunasan piutang','1300',0,500000,'Pelunasan','Toko Andini']],
+    'Saldo Awal':[['Tanggal','Kode Akun','Debit','Kredit','Mitra'],[d,'1100',1000000,0,''],[d,'3100',0,1000000,'']],
     'Penjualan':[['Tanggal','No Faktur','Pelanggan','Keterangan','Kode Barang/Akun','Uraian','Qty','Harga','PPN','Cara Bayar','Kode Akun Kas'],[d,'PJ-101','Toko Andini','','B001','Kemeja Polos',2,180000,11,'Kredit','']],
     'Pembelian':[['Tanggal','No Faktur','Pemasok','Keterangan','Kode Barang/Akun','Uraian','Qty','Harga','PPN','Cara Bayar','Kode Akun Kas'],[d,'PB-101','CV Sumber Kain','','B001','Kemeja Polos',10,100000,11,'Kredit','']],
     'Barang':[['Kode','Nama','Satuan'],['B001','Kemeja Polos','pcs']],
     'Persediaan':[['Tanggal','No Bukti','Kode Barang','Jenis','Qty','Harga','Mitra','Cara Bayar','Keterangan'],[d,'ST-101','B001','Masuk',5,100000,'CV Sumber Kain','Hutang','']],
-    'Aktiva Tetap':[['Kode','Nama','Tgl Perolehan','Harga Perolehan','Nilai Residu','Umur (Bulan)','Bulan Sudah Disusutkan','Kode Akun Aset','Kode Akun Akumulasi','Kode Akun Beban','Pencatatan Perolehan','Pemasok'],['AT-101','Mesin Jahit',d,6000000,0,48,0,'1205','1222','6227','Sudah tercatat','']]};
+    'Aktiva Tetap':[['Kode','Nama','Tgl Perolehan','Harga Perolehan','Nilai Residu','Umur (Bulan)','Bulan Sudah Disusutkan','Kode Akun Aset','Kode Akun Akumulasi','Kode Akun Beban','Pencatatan Perolehan','Pemasok'],['AT-101','Mesin Jahit',d,6000000,0,48,0,'1600','1690','5500','Sudah tercatat','']]};
   const list=names||['Akun','Jurnal','Saldo Awal','Penjualan','Pembelian','Barang','Persediaan','Aktiva Tetap'];
   list.forEach(n=>{const aoa=n==='Akun'?all.Akun.aoa:ex[n];if(aoa)XLSX.utils.book_append_sheet(wb,mkSheet(aoa,[]),n)});
   if(!names)XLSX.utils.book_append_sheet(wb,mkSheet([['Petunjuk'],
     ['1. Nama sheet dan judul kolom jangan diubah. Hapus baris contoh sebelum mengisi data asli.'],
-    ['2. Akun: Tipe diisi Aset Lancar, Piutang, Prepaid, Aktiva Tetap, Hutang, Pajak, Ekuitas, Pendapatan, atau Beban.'],
+    ['2. Akun: Tipe diisi Aset Lancar, Piutang, Prepaid, Aktiva Tetap, Hutang, Pajak, Ekuitas, Pendapatan, atau Beban. Kolom Induk diisi Ya untuk akun judul yang tidak dipakai di jurnal.'],
     ['3. Jurnal: satu baris per akun. Baris dengan No Bukti sama menjadi satu jurnal dan total debit harus sama dengan total kredit.'],
     ['4. Saldo Awal: tanggal diisi sekali di baris pertama. Mengimpor sheet ini menggantikan saldo awal yang lama.'],
     ['5. Penjualan/Pembelian: kolom Kode Barang/Akun diisi kode barang (sheet Barang) atau kode akun. Baris dengan No Faktur sama menjadi satu faktur.'],
@@ -690,8 +1120,9 @@ const iNum=(p,v)=>'<input'+bd(p,'n')+' inputmode="decimal" value="'+(v?esc(Strin
 const iDate=(p,v)=>'<input type="date"'+bd(p,'s')+' value="'+esc(v)+'">';
 const iPw=(p,v)=>'<input type="password"'+bd(p,'s')+' value="'+esc(v)+'" autocomplete="off">';
 const iChk=(p,v)=>'<input type="checkbox"'+bd(p,'chk')+(v?' checked':'')+'>';
-const iSel=(p,opts,v,r,x)=>'<select'+bd(p,'s',r)+(x||'')+'>'+opts.map(o=>'<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?' selected':'')+'>'+esc(o[1])+'</option>').join('')+'</select>';
-const akunOpts=(c,fn,first)=>[['',first||'Pilih akun']].concat(c.coa.slice().sort(byKode).filter(a=>!a.induk).filter(fn||(()=>true)).map(a=>[a.kode,a.kode+' '+a.nama]));
+const iSel=(p,opts,v,r,x)=>{let h='',open=false;opts.forEach(o=>{if(o[0]===GM){if(open)h+='</optgroup>';h+='<optgroup label="'+esc(o[1])+'">';open=true}else h+='<option value="'+esc(o[0])+'"'+(String(o[0])===String(v)?' selected':'')+'>'+esc(o[1])+'</option>'});if(open)h+='</optgroup>';return '<select'+bd(p,'s',r)+(x||'')+'>'+h+'</select>'};
+const FSI='<input data-fsi="1" placeholder="Cari: ketik kode atau nama" aria-label="Cari akun">';
+const akunOpts=(c,fn,first)=>[['',first||'Pilih akun']].concat(grp(c.coa.filter(a=>!a.induk&&(!fn||fn(a))).sort(byKode),a=>[a.kode,a.kode+' '+a.nama]));
 const armBtn=(act,id,label)=>{const k=act+':'+id;return'<button class="sm dng" data-act="'+act+'" data-id="'+esc(id)+'">'+(armed===k?'Yakin? Tap lagi':label)+'</button>'};
 const fld=(l,h,cls)=>'<label'+(cls?' class="'+cls+'"':'')+'>'+l+h+'</label>';
 function setPath(o,path,v){const ps=path.split('.');let t=o;for(let i=0;i<ps.length-1;i++)t=t[ps[i]];t[ps[ps.length-1]]=v}
@@ -724,7 +1155,7 @@ function render(){
   $('#view').innerHTML=V();live();
   try{const on=$('#nav .on');if(on&&on.scrollIntoView)on.scrollIntoView({inline:'center',block:'nearest'})}catch(e){}
 }
-function live(){if(tab==='jurnal')updBal('j','bal','simpanj');else if(tab==='saldo')updBal('sa','bal','simpans');else if(tab==='jual'||tab==='beli')updTrx(tab)}
+function live(){if(tab==='jurnal')updBal('j','bal','simpanj');else if(tab==='saldo')updBal('sa','bal','simpans');else if(tab==='jual'||tab==='beli')updTrx(tab);else if(tab==='akun')applyQa()}
 
 /* ---------- halaman sambutan dan masuk ---------- */
 function bannerHtml(b){
@@ -759,12 +1190,13 @@ function keluar(){SES=null;try{sessionStorage.removeItem('umkum.ses')}catch(e){}
 function vUsaha(){
   const none=!S.perusahaan.length;
   const baru='<div class="card"><h2>'+(none?'Mulai dengan perusahaan pertama':'Tambah perusahaan')+'</h2><div class="col">'+fld('Nama perusahaan','<input id="p-nama" placeholder="Misal: Toko Maju Jaya">')+
-    '<button class="pri" data-act="tambahp">Buat dengan daftar akun standar</button><div class="muted">Setiap perusahaan punya akun, jurnal, dan transaksi sendiri, tidak tercampur.</div></div></div>';
+    '<button class="pri" data-act="tambahp">Buat dengan COA lengkap (kode 1xxx sampai 9xxx)</button><div class="muted">Setiap perusahaan punya akun, jurnal, dan transaksi sendiri, tidak tercampur.</div></div></div>';
   if(none)return baru+'<div class="card"><h2>Ingin mencoba dulu?</h2><p class="muted" style="margin:0 0 10px">Muat perusahaan contoh lengkap dengan penjualan, pembelian, stok, dan aktiva tetap. Bisa dihapus kapan saja.</p><button data-act="contoh">Muat data contoh</button></div>'+
     '<div class="card"><h2>Pindah dari perangkat lain?</h2><p class="muted" style="margin:0">Buat perusahaan dulu, lalu buka menu Excel dan impor file cadangan dari perangkat lama.</p></div>';
   return '<div class="card"><h2>Perusahaan</h2><div class="col">'+S.perusahaan.map(p=>'<div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px"><div><b>'+esc(p.nama)+'</b> '+(p.demo?'<span class="tag warn">data contoh</span>':'')+(p.id===S.aktif?' <span class="tag">aktif</span>':'')+
     '<div class="muted">'+p.coa.length+' akun, '+new Set(p.jurnal.map(l=>l.no)).size+' jurnal</div></div><div class="row">'+(p.id===S.aktif?'':'<button class="sm" data-act="pilih" data-id="'+p.id+'">Buka</button>')+(ADM()?armBtn('hapusp',p.id,'Hapus'):'')+'</div></div>').join('')+'</div></div>'+baru+
     '<div class="card"><h2>Tentang versi</h2><p style="margin:0 0 8px">id.os-UMKUM <b>v'+VER+'</b>. Data tersimpan di perangkat ini dan tidak ikut terbawa saat pasang ulang atau pindah perangkat. Ekspor ke Excel secara berkala, lalu impor di perangkat baru.</p><h3>Riwayat versi</h3><ul class="log">'+
+    '<li><b>v2.1</b>: daftar akun diganti COA lengkap (422 akun, kelas kode 1 sampai 9) dari berkas COA Lengkap, ada akun induk, pencarian akun di jurnal dan daftar akun, serta tombol tambah atau ganti COA untuk perusahaan lama.</li>'+
     '<li><b>v2.0</b>: halaman sambutan dengan banner dan login 2 level, 9 jenis akun, ubah akun, jurnal dengan keterangan per baris, edit dan hapus jurnal, input angka format rupiah, neraca saldo (trial balance) dengan saldo awal dan mutasi, sub ledger piutang dan hutang, menu penjualan, pembelian, persediaan, aktiva tetap dengan penyusutan otomatis bulanan, saldo awal, lampiran PDF/JPEG, impor dan ekspor Excel di semua menu.</li>'+
     '<li><b>v1.1</b>: database kosong saat pertama dipasang, bisa dipasang sebagai aplikasi.</li><li><b>v1.0</b>: versi pertama.</li></ul></div>';
 }
@@ -773,7 +1205,7 @@ function vUsaha(){
 const newJ=()=>({edit:'',tgl:today(),no:nextNo(C()),ket:'',lines:[{akun:'',d:0,k:0,memo:'',mitra:''},{akun:'',d:0,k:0,memo:'',mitra:''}],lamp:[]});
 function jline(k,i,l,memo,n){
   const c=C(),a=c.coa.find(x=>x.kode===l.akun),p=k+'.lines.'+i+'.';
-  return '<div class="jl"><div class="w">'+iSel(p+'akun',akunOpts(c),l.akun,1)+'</div>'+fld('Debit',iRp(p+'d',l.d))+fld('Kredit',iRp(p+'k',l.k))+
+  return '<div class="jl"><div class="w col">'+FSI+iSel(p+'akun',akunOpts(c),l.akun,1)+'</div>'+fld('Debit',iRp(p+'d',l.d))+fld('Kredit',iRp(p+'k',l.k))+
     (memo?fld('Keterangan baris',iText(p+'memo',l.memo,'Opsional'),'w'):'')+
     (isSub(a)?fld('Nama '+(a.tipe==='piutang'?'pelanggan / debitur':'pemasok / kreditur'),iText(p+'mitra',l.mitra,'Untuk sub ledger','list="dl-mitra"'),'w'):'')+
     (n>2?'<div class="w"><button class="sm dng" data-act="rmbaris" data-id="'+k+':'+i+'">Hapus baris</button></div>':'')+'</div>';
@@ -840,24 +1272,70 @@ function simpanSaldo(){
 }
 
 /* ---------- akun ---------- */
-const newAk=()=>({edit:'',kode:'',nama:'',tipe:'lancar',normal:'D',kas:false});
+const newAk=()=>({edit:'',kode:'',nama:'',tipe:'lancar',normal:'D',kas:false,induk:false});
+function usedSetOf(c){
+  const s=new Set(c.jurnal.map(l=>l.akun));
+  Object.values(c.map).forEach(k=>s.add(k));
+  c.aset.forEach(a=>{s.add(a.akun);s.add(a.akum);s.add(a.beban)});
+  c.penjualan.concat(c.pembelian).forEach(p=>{if(p.akunKas)s.add(p.akunKas);p.items.forEach(i=>{if((i.sel||'').slice(0,2)==='a:')s.add(i.sel.slice(2))})});
+  return s;
+}
 function vAkun(){
   const c=C();if(!DR.ak)DR.ak=newAk();const a=DR.ak;DR.map=c.map;
-  const used=k=>kodeUsed(c,k);
-  const list=[1,2,3,4,5,6,7,8,9].map(n=>{const rows=c.coa.filter(x=>String(x.kode)[0]===String(n)).sort(byKode);if(!rows.length)return '';
-    const op=(DR.kls||{})[n]?' open':'';
-    return '<details class="kls" data-kls="'+n+'"'+op+'><summary><b>'+n+'</b> &middot; '+KELAS_LBL[n]+' ('+rows.length+')</summary><div class="scroll"><table><tbody>'+rows.map(x=>'<tr'+(x.induk?' style="font-weight:700"':'')+'><td style="width:56px">'+esc(x.kode)+'</td><td>'+esc(x.nama)+' <span class="tag">'+esc(TIPE_LBL[x.tipe]||x.tipe)+'</span>'+(x.kas?' <span class="tag">kas</span>':'')+(x.induk?' <span class="tag">induk</span>':'')+(x.normal!==normalOf(x.tipe)?' <span class="tag warn">saldo '+(x.normal==='D'?'debit':'kredit')+'</span>':'')+'</td><td class="n">'+
-      (ADM()?'<button class="sm" data-act="eakun" data-id="'+esc(x.kode)+'">Ubah</button> '+(used(x.kode)?'':armBtn('hapusa',x.kode,'Hapus')):'')+'</td></tr>').join('')+'</tbody></table></div></details>'}).join('');
+  const U=usedSetOf(c),rows=c.coa.slice().sort(byKode);
+  let lastK='',lastS='',body='';
+  rows.forEach(x=>{
+    const k=kelasOf(x.kode),s=seksiOf(x.kode);
+    if(k!==lastK){body+='<tr class="sec" data-h="1"><td colspan="3">'+esc(k)+'</td></tr>';lastK=k;lastS=''}
+    if(s!==lastS){body+='<tr class="sub" data-h="2"><td colspan="3">'+esc(s)+'</td></tr>';lastS=s}
+    const q=(x.kode+' '+x.nama+' '+(TIPE_LBL[x.tipe]||'')).toLowerCase();
+    body+='<tr data-q="'+esc(q)+'"><td style="width:52px">'+esc(x.kode)+'</td><td>'+(x.induk?'<b>'+esc(x.nama)+'</b> <span class="tag">induk</span>':esc(x.nama))+(x.kas?' <span class="tag">kas</span>':'')+
+      '<div class="muted" style="font-size:11px">'+esc(TIPE_LBL[x.tipe]||x.tipe)+' &middot; saldo '+(x.normal==='D'?'debit':'kredit')+'</div></td><td class="n">'+
+      (ADM()?'<button class="sm" data-act="eakun" data-id="'+esc(x.kode)+'">Ubah</button> '+(U.has(x.kode)?'':armBtn('hapusa',x.kode,'Hapus')):'')+'</td></tr>';
+  });
+  const have=new Set(c.coa.map(z=>z.kode)),miss=DEF_COA.filter(r=>!have.has(r[0])).length;
+  const kosong=!c.jurnal.length&&!c.penjualan.length&&!c.pembelian.length&&!c.stok.length&&!c.aset.length;
+  const full=(ADM()&&miss>0)?'<div class="card"><h2>COA lengkap</h2><div class="col"><div class="muted">Daftar akun perusahaan ini belum memuat seluruh COA lengkap ('+DEF_COA.length+' akun, kelas kode 1 sampai 9). Yang belum ada: '+miss+' akun.</div>'+
+    '<button class="pri" data-act="coamerge">Tambahkan '+miss+' akun yang belum ada</button>'+
+    (kosong?'<div class="muted">Perusahaan ini belum punya transaksi, jadi daftar akun lama boleh diganti seluruhnya supaya tidak ada akun ganda.</div>'+armBtn('gantiCoa','','Ganti seluruh daftar dengan COA lengkap'):'<div class="muted">Akun lama yang sudah dipakai tetap dipertahankan. Kode yang sama tidak ditimpa, jadi bisa ada akun dengan nama yang mirip.</div>')+'</div></div>':'';
   const form=ADM()?'<div class="card"><h2>'+(a.edit?'Ubah akun '+esc(a.edit):'Tambah akun')+'</h2><div class="col"><div class="grid2">'+
-    fld('Kode',a.edit?'<input value="'+esc(a.kode)+'" disabled>':iText('ak.kode',a.kode,'1700'))+fld('Jenis akun',iSel('ak.tipe',TIPE.map(t=>[t,TIPE_LBL[t]]),a.tipe,1))+'</div>'+
+    fld('Kode',a.edit?'<input value="'+esc(a.kode)+'" disabled>':iText('ak.kode',a.kode,'1700'))+fld('Jenis akun (posisi di laporan)',iSel('ak.tipe',TIPE.map(t=>[t,TIPE_LBL[t]]),a.tipe,1))+'</div>'+
     fld('Nama akun',iText('ak.nama',a.nama,'Misal: Tanah'))+fld('Saldo normal',iSel('ak.normal',[['D','Debit'],['K','Kredit']],a.normal))+
     '<label style="flex-direction:row;align-items:center;gap:8px;font-size:13px">'+iChk('ak.kas',a.kas)+' Akun kas atau bank</label>'+
+    '<label style="flex-direction:row;align-items:center;gap:8px;font-size:13px">'+iChk('ak.induk',a.induk)+' Akun induk / judul (tidak dipakai di jurnal)</label>'+
     '<div class="row">'+(a.edit?'<button data-act="bataleak">Batal</button>':'')+'<button class="pri" data-act="simpanak" style="flex:1">'+(a.edit?'Simpan perubahan':'Tambah akun')+'</button></div></div></div>':
     '<div class="card muted">Hanya Admin yang bisa menambah, mengubah, atau menghapus akun.</div>';
   const map='<div class="card"><h2>Akun untuk transaksi otomatis</h2><div class="col"><div class="muted">Menu penjualan, pembelian, persediaan, dan aktiva tetap membuat jurnal ke akun-akun ini.</div>'+
     Object.keys(MAP_LBL).map(k=>fld(MAP_LBL[k],ADM()?iSel('map.'+k,akunOpts(c),c.map[k],1):'<input value="'+esc(c.map[k]+' '+((c.coa.find(x=>x.kode===c.map[k])||{}).nama||''))+'" disabled>')).join('')+'</div></div>';
-  return '<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Daftar akun ('+c.coa.length+')</h2>'+xlBtn('Akun','akun')+'</div>'+list+'</div>'+form+map+
-    impCard('akun','Akun','Impor daftar akun (kolom: Kode, Nama Akun, Tipe, Saldo Normal, Kas). Kode yang sudah ada diperbarui.');
+  return full+form+'<div class="card"><div class="row" style="justify-content:space-between;margin-bottom:8px"><h2 style="margin:0">Daftar akun ('+c.coa.length+')</h2>'+xlBtn('Akun','akun')+'</div>'+
+    '<input data-qa="1" placeholder="Cari kode atau nama akun" value="'+esc(R_.qa||'')+'" aria-label="Cari akun" style="margin-bottom:8px">'+
+    '<div class="scroll"><table id="akl"><tbody>'+body+'</tbody></table></div></div>'+map+
+    impCard('akun','Akun','Impor daftar akun (kolom: Kode, Nama Akun, Tipe, Saldo Normal, Kas, Induk). Kode yang sudah ada diperbarui.');
+}
+function applyQa(){
+  const q=(R_.qa||'').trim().toLowerCase(),rows=[...document.querySelectorAll('#akl tr')];
+  let h1=null,a1=false,h2=null,a2=false;
+  const f2=()=>{if(h2){h2.hidden=!a2;if(a2)a1=true}h2=null;a2=false};
+  const f1=()=>{f2();if(h1)h1.hidden=!a1;h1=null;a1=false};
+  rows.forEach(r=>{const h=r.dataset.h;if(h==='1'){f1();h1=r}else if(h==='2'){f2();h2=r}else{const m=!q||(r.dataset.q||'').includes(q);r.hidden=!m;if(m)a2=true}});
+  f1();
+}
+function fsFilter(inp){
+  const sel=inp.nextElementSibling;if(!sel||sel.tagName!=='SELECT')return;
+  if(!sel._all)sel._all=[...sel.children].map(n=>n.cloneNode(true));
+  const q=inp.value.trim().toLowerCase(),cur=sel.value;
+  const ok=o=>!q||o.value===''||o.value===cur||o.textContent.toLowerCase().includes(q);
+  sel.innerHTML='';
+  sel._all.forEach(n=>{
+    if(n.tagName==='OPTGROUP'){const keep=[...n.children].filter(ok);if(keep.length){const g=n.cloneNode(false);keep.forEach(o=>g.appendChild(o.cloneNode(true)));sel.appendChild(g)}}
+    else if(ok(n))sel.appendChild(n.cloneNode(true));
+  });
+  sel.value=cur;
+}
+function sugAset(k){
+  const s=ASET_SUG[k],c=C(),a=DR.at;if(!s||!a)return;
+  if(!a.akum&&c.coa.some(x=>x.kode===s[0]))a.akum=s[0];
+  if((!a.beban||a.beban===c.map.susut)&&c.coa.some(x=>x.kode===s[1]))a.beban=s[1];
 }
 
 /* ---------- setelan ---------- */
@@ -885,7 +1363,7 @@ const blankItem=()=>({sel:'',uraian:'',qty:1,harga:0});
 const newTrx=(c,k)=>({id:'',no:nextNoT(c,k==='jual'?'PJ':'PB'),tgl:today(),mitra:'',ket:'',ppn:0,bayar:'kredit',akunKas:'',items:[blankItem()],lamp:[]});
 function selOpts(c,kind){
   const okT=kind==='jual'?['pendapatan']:['lancar','prepaid','tetap','beban'];
-  return [['','Pilih barang atau akun']].concat(c.barang.map(b=>['b:'+b.id,'Barang: '+b.kode+' '+b.nama]),c.coa.filter(a=>okT.includes(a.tipe)&&!a.kas).sort(byKode).map(a=>['a:'+a.kode,'Akun: '+a.kode+' '+a.nama]));
+  return [['','Pilih barang atau akun']].concat(c.barang.map(b=>['b:'+b.id,'Barang: '+b.kode+' '+b.nama]),grp(c.coa.filter(a=>okT.includes(a.tipe)&&!a.kas&&!a.induk).sort(byKode),a=>['a:'+a.kode,a.kode+' '+a.nama]));
 }
 function updTrx(kind){
   const d=DR[kind],e=$('#trxinfo');if(!d||!e)return;
@@ -900,7 +1378,7 @@ function vTrx(kind){
   return '<div class="card"><h2>'+(d.id?'Ubah faktur '+esc(d.no):nm+' baru')+'</h2><div class="col">'+
     '<div class="grid2">'+fld('Tanggal',iDate(kind+'.tgl',d.tgl))+fld('No. faktur',iText(kind+'.no',d.no))+'</div>'+
     fld(ml,iText(kind+'.mitra',d.mitra,jual?'Nama pelanggan':'Nama pemasok','list="dl-mitra"'))+fld('Keterangan',iText(kind+'.ket',d.ket,'Opsional'))+
-    '<div>'+d.items.map((it,i)=>{const p=kind+'.items.'+i+'.';return '<div class="jl"><div class="w">'+iSel(p+'sel',selOpts(c,kind),it.sel,1)+'</div>'+fld('Uraian',iText(p+'uraian',it.uraian),'w')+fld('Qty',iNum(p+'qty',it.qty))+fld('Harga satuan',iRp(p+'harga',it.harga))+(d.items.length>1?'<div class="w"><button class="sm dng" data-act="rmitem" data-id="'+kind+':'+i+'">Hapus baris</button></div>':'')+'</div>'}).join('')+'</div>'+
+    '<div>'+d.items.map((it,i)=>{const p=kind+'.items.'+i+'.';return '<div class="jl"><div class="w col">'+FSI+iSel(p+'sel',selOpts(c,kind),it.sel,1)+'</div>'+fld('Uraian',iText(p+'uraian',it.uraian),'w')+fld('Qty',iNum(p+'qty',it.qty))+fld('Harga satuan',iRp(p+'harga',it.harga))+(d.items.length>1?'<div class="w"><button class="sm dng" data-act="rmitem" data-id="'+kind+':'+i+'">Hapus baris</button></div>':'')+'</div>'}).join('')+'</div>'+
     '<div class="grid2">'+fld('PPN (%)',iNum(kind+'.ppn',d.ppn))+fld('Cara bayar',iSel(kind+'.bayar',[['kredit','Kredit (masuk '+sub+')'],['tunai','Tunai']],d.bayar,1))+'</div>'+
     (d.bayar==='tunai'?fld('Akun kas / bank',iSel(kind+'.akunKas',akunOpts(c,a=>a.kas,'Kas bawaan'),d.akunKas)):'')+
     '<div id="trxinfo" class="bal ok"></div>'+
@@ -979,7 +1457,7 @@ function simpanStok(){
 
 /* ---------- aktiva tetap ---------- */
 const newAt=c=>({id:'',kode:'AT-'+pad(c.aset.length+1,2),nama:'',tgl:today(),harga:0,residu:0,umur:48,sudah:0,
-  akun:(c.coa.find(a=>a.tipe==='tetap'&&a.normal==='D')||{}).kode||'',akum:(c.coa.find(a=>a.tipe==='tetap'&&a.normal==='K')||{}).kode||'',beban:c.map.susut,perolehan:'none',mitra:'',lamp:[]});
+  akun:'',akum:'',beban:c.map.susut,perolehan:'none',mitra:'',lamp:[]});
 function vAset(){
   const c=C();if(!DR.at)DR.at=newAt(c);const a=DR.at,td=today();
   if(!R_.aid||!c.aset.some(x=>x.id===R_.aid))R_.aid=c.aset[0]?c.aset[0].id:'';
@@ -994,7 +1472,7 @@ function vAset(){
   '<div class="card"><h2>'+(a.id?'Ubah aktiva tetap':'Tambah aktiva tetap')+'</h2><div class="col"><div class="grid2">'+fld('Kode aset',iText('at.kode',a.kode))+fld('Tanggal perolehan',iDate('at.tgl',a.tgl))+'</div>'+fld('Nama aset',iText('at.nama',a.nama,'Misal: Mesin Jahit'))+
     '<div class="grid2">'+fld('Harga perolehan',iRp('at.harga',a.harga))+fld('Nilai residu',iRp('at.residu',a.residu))+'</div>'+
     '<div class="grid2">'+fld('Umur (bulan)',iNum('at.umur',a.umur))+fld('Bulan sudah disusutkan',iNum('at.sudah',a.sudah))+'</div>'+
-    fld('Akun aset',iSel('at.akun',tetap,a.akun))+fld('Akun akumulasi penyusutan',iSel('at.akum',akm,a.akum))+fld('Akun beban penyusutan',iSel('at.beban',bb,a.beban))+
+    fld('Akun aset',iSel('at.akun',tetap,a.akun,1))+fld('Akun akumulasi penyusutan',iSel('at.akum',akm,a.akum))+fld('Akun beban penyusutan',iSel('at.beban',bb,a.beban))+
     fld('Pencatatan perolehan',iSel('at.perolehan',[['none','Sudah tercatat (saldo awal atau jurnal)'],['kas','Dibayar kas (buat jurnal)'],['hutang','Dihutang (buat jurnal)']],a.perolehan,1))+
     (a.perolehan==='hutang'?fld('Pemasok',iText('at.mitra',a.mitra,'Wajib','list="dl-mitra"')):'')+
     '<div class="muted">Aset lama yang akumulasinya sudah ada di saldo awal: isi Bulan sudah disusutkan sesuai jumlah bulan yang dihitung di saldo awal.</div>'+lampW('at')+
@@ -1039,9 +1517,9 @@ function vLap(){
       '<tr class="sec"><td colspan="2">Ekuitas</td></tr>'+d.E.map(g=>g.rows.map(x=>'<tr><td>'+esc(x[0]+' '+x[1])+'</td><td class="n">'+rp(x[2])+'</td></tr>').join('')).join('')+'<tr><td>Laba (rugi) berjalan</td><td class="n">'+rp(d.laba)+'</td></tr><tr class="tot"><td>Total ekuitas</td><td class="n">'+rp(d.TE)+'</td></tr>'+
       '<tr class="tot"><td>Liabilitas + ekuitas</td><td class="n">'+rp(d.TL+d.TE)+'</td></tr></tbody></table></div>'+ok(d.selisih===0,'Seimbang: aset sama dengan liabilitas + ekuitas.','Tidak seimbang, selisih '+rp(Math.abs(d.selisih)));
   }else if(R_.sub==='bb'){
-    if(!R_.akun||!c.coa.some(a=>a.kode===R_.akun))R_.akun=(c.coa.slice().sort(byKode)[0]||{}).kode||'';
+    if(!R_.akun||!c.coa.some(a=>a.kode===R_.akun&&!a.induk))R_.akun=(c.coa.filter(a=>!a.induk).sort(byKode)[0]||{}).kode||'';
     const d=dataBB(c,R_.akun,f,t);
-    body='<h2>Buku besar</h2>'+fld('Akun',iSel('x',akunOpts(c).slice(1),R_.akun,0,' data-rsel="akun"'))+(d?'<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Tgl</th><th>Bukti</th><th>Uraian</th><th class="n">Debit</th><th class="n">Kredit</th><th class="n">Saldo</th></tr></thead><tbody><tr><td colspan="5" class="muted">Saldo awal</td><td class="n">'+rp(d.awal)+'</td></tr>'+
+    body='<h2>Buku besar</h2>'+fld('Akun',FSI+iSel('x',akunOpts(c).slice(1),R_.akun,0,' data-rsel="akun"'))+(d?'<div class="scroll" style="margin-top:8px"><table><thead><tr><th>Tgl</th><th>Bukti</th><th>Uraian</th><th class="n">Debit</th><th class="n">Kredit</th><th class="n">Saldo</th></tr></thead><tbody><tr><td colspan="5" class="muted">Saldo awal</td><td class="n">'+rp(d.awal)+'</td></tr>'+
       d.rows.map(r=>'<tr><td>'+tglId(r[0]).slice(0,5)+'</td><td>'+esc(r[1])+'</td><td>'+esc(r[2])+'</td><td class="n">'+(r[3]?rp(r[3]):'')+'</td><td class="n">'+(r[4]?rp(r[4]):'')+'</td><td class="n">'+rp(r[5])+'</td></tr>').join('')+
       '<tr class="tot"><td colspan="5">Saldo akhir</td><td class="n">'+rp(d.akhir)+'</td></tr></tbody></table></div>':'');
   }else if(R_.sub==='sp'||R_.sub==='sh'){
@@ -1095,7 +1573,7 @@ document.addEventListener('click',async e=>{
   const nb=e.target.closest('[data-tab]');if(nb){IMP={};go(nb.dataset.tab);return}
   const b=e.target.closest('[data-act]');if(!b)return;
   const act=b.dataset.act,id=b.dataset.id||'',key=act+':'+id;
-  if(/^hapus/.test(act)){if(armed!==key){armed=key;render();return}armed=''}else armed='';
+  if(/^(hapus|ganti)/.test(act)){if(armed!==key){armed=key;render();return}armed=''}else armed='';
   const c=S.perusahaan.length?C():null;
   const st=(k,fn)=>{DR[k]=fn;render();window.scrollTo(0,0)};
   switch(act){
@@ -1118,14 +1596,18 @@ document.addEventListener('click',async e=>{
     case 'hapusj':{if(!ADM())return;const o=c.jurnal.find(l=>l.no===id&&l.src==='manual'&&l.lamp);c.jurnal=c.jurnal.filter(l=>!(l.no===id&&l.src==='manual'));lampBersih(o&&o.lamp,[]);save();return render()}
     case 'jf':JF=id;JLIM=60;return render();
     case 'lagi':JLIM+=60;return render();
-    case 'eakun':{if(!ADM())return;const a=c.coa.find(x=>x.kode===id);if(!a)return;return st('ak',{edit:a.kode,kode:a.kode,nama:a.nama,tipe:a.tipe,normal:a.normal,kas:!!a.kas})}
+    case 'eakun':{if(!ADM())return;const a=c.coa.find(x=>x.kode===id);if(!a)return;return st('ak',{edit:a.kode,kode:a.kode,nama:a.nama,tipe:a.tipe,normal:a.normal,kas:!!a.kas,induk:!!a.induk})}
     case 'bataleak':DR.ak=newAk();return render();
     case 'simpanak':{if(!ADM())return;const a=DR.ak,kode=(a.kode||'').trim(),nama=(a.nama||'').trim();
       if(!kode||!nama)return toast('Isi kode dan nama akun.');
-      if(a.edit){const o=c.coa.find(x=>x.kode===a.edit);o.nama=nama;o.tipe=a.tipe;o.normal=a.normal;o.kas=a.kas}
-      else{if(c.coa.some(x=>x.kode===kode))return toast('Kode '+kode+' sudah ada.');c.coa.push({kode,nama,tipe:a.tipe,normal:a.normal,kas:a.kas})}
+      if(a.induk&&a.edit&&kodeUsed(c,a.edit))return toast('Akun ini sudah dipakai, tidak bisa dijadikan akun induk.');
+      if(a.edit){const o=c.coa.find(x=>x.kode===a.edit);o.nama=nama;o.tipe=a.tipe;o.normal=a.normal;o.kas=a.kas;o.induk=!!a.induk}
+      else{if(c.coa.some(x=>x.kode===kode))return toast('Kode '+kode+' sudah ada.');c.coa.push({kode,nama,tipe:a.tipe,normal:a.normal,kas:a.kas,induk:!!a.induk})}
       save();DR.ak=newAk();toast('Akun tersimpan');return render()}
     case 'hapusa':if(ADM()&&!kodeUsed(c,id)){c.coa=c.coa.filter(a=>a.kode!==id);save();render()}return;
+    case 'coamerge':{if(!ADM())return;const have=new Set(c.coa.map(z=>z.kode));let n=0;DEF_COA.forEach(r=>{if(!have.has(r[0])){c.coa.push(coaRow(r));n++}});save();toast(n+' akun ditambahkan');return render()}
+    case 'gantiCoa':{if(!ADM())return;if(c.jurnal.length||c.penjualan.length||c.pembelian.length||c.stok.length||c.aset.length)return toast('Perusahaan ini sudah punya transaksi, daftar akun tidak bisa diganti seluruhnya.');
+      c.coa=mkCoa();c.map=Object.assign({},DEF_MAP);rebuild(c);save();DR.ak=newAk();toast('Daftar akun diganti dengan COA lengkap');return render()}
     case 'baritem':DR[id].items.push(blankItem());return render();
     case 'rmitem':{const [k,i]=id.split(':');DR[k].items.splice(+i,1);return render()}
     case 'simpantrx':return simpanTrx(id);
@@ -1160,7 +1642,10 @@ document.addEventListener('click',async e=>{
 });
 /* ---------- input form ---------- */
 document.addEventListener('input',e=>{
-  const t=e.target,p=t.dataset&&t.dataset.b;if(!p)return;
+  const t=e.target;
+  if(t.dataset&&t.dataset.fsi){fsFilter(t);return}
+  if(t.dataset&&t.dataset.qa){R_.qa=t.value;applyQa();return}
+  const p=t.dataset&&t.dataset.b;if(!p)return;
   const ty=t.dataset.t;if(ty==='chk')return;
   let v=t.value;if(ty==='rp'){fmtInput(t);v=parseRp(t.value)}else if(ty==='n')v=parseN(v);
   try{setPath(DR,p,v)}catch(x){return}
@@ -1181,12 +1666,12 @@ document.addEventListener('change',async e=>{
   if(ty==='chk')v=t.checked;else if(ty==='rp')v=parseRp(v);else if(ty==='n')v=parseN(v);
   try{setPath(DR,p,v)}catch(x){return}
   if(p==='ak.tipe')DR.ak.normal=normalOf(v);
+  if(p==='at.akun')sugAset(v);
   if(p.slice(0,4)==='map.'){const c=C();rebuild(c);save();toast('Akun otomatis diperbarui');return render()}
   const m=p.match(/^(jual|beli)\.items\.(\d+)\.sel$/);
   if(m){const it=DR[m[1]].items[+m[2]],b=bOf(C(),v);if(b&&!it.uraian){const x=C().barang.find(z=>z.id===b);if(x)it.uraian=x.nama}}
   if(t.dataset.r)render();
 });
-document.addEventListener('toggle',e=>{const d=e.target;if(d.classList&&d.classList.contains('kls')){DR.kls=DR.kls||{};DR.kls[d.dataset.kls]=d.open}},true);
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&e.target.closest&&e.target.closest('.wl')&&e.target.tagName==='INPUT'){const b=document.querySelector('.wl button.pri');if(b)b.click()}});
 
 render();

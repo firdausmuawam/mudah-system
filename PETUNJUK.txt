@@ -1,22 +1,28 @@
-id.os-UMKUM v2.1 - CARA PERBARUI (tanpa koding)
+id.os-UMKUM v2.1 - CARA PASANG / PERBARUI (tanpa koding)
 
-YANG BARU DI v2.1
-- Daftar akun diisi COA lengkap sesuai PDF Anda (halaman 1-14): 422 akun, kelas kode 1 sampai 9
-  (1 Aset, 2 Kewajiban, 3 Ekuitas, 4 Pendapatan, 5 HPP dan Produksi, 6 Beban Operasional,
-   7 Nonoperasional, 8 Pajak Penghasilan, 9 Akun Kontrol Pajak).
-- Menu Akun: daftar dikelompokkan per kelas (ketuk untuk buka/tutup). Akun induk (kode berakhiran 00) ditandai "induk"
-  dan tidak muncul di pilihan jurnal.
-- Akun bawaan transaksi otomatis (bisa diubah di menu Akun):
-  Kas 1101, Piutang usaha 1110, Persediaan 1120, Utang usaha 2101, Penjualan 4101,
-  HPP 5115, PPN keluaran 2120, PPN masukan 1161, Beban lain 6230, Beban penyusutan 6227.
-- Perusahaan baru langsung memakai COA ini. Perusahaan lama: akun lama TIDAK diubah,
-  akun PDF yang belum ada ditambahkan otomatis (kode yang sama tidak ditimpa).
-- Template Excel dan data contoh memakai kode baru.
+ISI FOLDER (5 file, semuanya wajib diunggah):
+  index.html, manifest.webmanifest, sw.js, icon-192.png, icon-512.png
 
-CARA MEMPERBARUI DARI v2.0 KE v2.1
-1. Ekstrak zip ini. Buka repository mudah-system di GitHub.
-2. Klik "Add file" > "Upload files". Seret SEMUA isi folder id.os-UMKUM-v2.1
-   (index.html, sw.js, manifest.webmanifest, icon-192.png, icon-512.png). Jangan unggah PETUNJUK ini kalau tidak mau.
-3. Klik "Commit changes". Tunggu centang hijau di tab Actions (1-2 menit).
-4. Buka alamat aplikasi, lalu muat ulang DUA KALI (atau tutup dan buka lagi) sampai pojok atas tertulis v2.1.
-Data Anda aman: tersimpan di perangkat, bukan di GitHub.
+MEMPERBARUI DARI v2.0 KE v2.1 (repository mudah-system yang sudah ada)
+ 1. Ekstrak zip ini. Buka repository di github.com, klik "Add file" > "Upload files".
+ 2. Seret kelima file dari DALAM folder (bukan foldernya). Nama yang sama akan menimpa yang lama.
+ 3. Klik "Commit changes". Tunggu 1-2 menit.
+ 4. Buka https://firdausmuawam.github.io/mudah-system/ lalu muat ulang 2 kali
+    (atau tutup dan buka lagi aplikasinya) sampai pojok atas tertulis v2.1.
+ 5. Data lama di perangkat tetap ada dan otomatis disesuaikan ke versi baru.
+    Kamu akan diminta membuat akun Admin pertama.
+
+PERANGKAT BARU: buka alamat yang sama, instal, buat akun Admin, database mulai kosong.
+PINDAH DATA: menu Excel > Unduh semua hasil, lalu di perangkat baru buat perusahaan dan impor file itu.
+
+CATATAN
+ - Data dan kata sandi tersimpan di perangkat. Lampiran juga di perangkat dan tidak ikut ekspor Excel.
+ - Menghapus data situs Chrome atau mencopot aplikasi menghapus semua data. Ekspor Excel berkala.
+ - Jangan unggah file Excel berisi data keuangan ke repository publik.
+
+CATATAN v2.1
+- Daftar akun bawaan sekarang COA lengkap: 422 akun, kode 1xxx sampai 9xxx.
+- Perusahaan lama tetap memakai akun lamanya. Buka menu Akun (sebagai Admin),
+  lalu tekan "Tambahkan akun yang belum ada" untuk menambah COA lengkap.
+- Kalau perusahaan belum punya transaksi, ada tombol untuk mengganti seluruh daftar.
+- Akun induk (kode berakhiran 00) hanya judul, tidak bisa dipakai di jurnal.
